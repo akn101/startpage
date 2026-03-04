@@ -1,0 +1,68 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
+interface WeatherData {
+  temp: number;
+  windspeed: number;
+  code: number;
+}
+
+function interpretWeather(code: number): { emoji: string; label: string } {
+  if (code === 0)  return { emoji: "☀️",  label: "Clear" };
+  if (code <= 2)   return { emoji: "⛅",  label: "Partly cloudy" };
+  if (code === 3)  return { emoji: "☁️",  label: "Overcast" };
+  if (code <= 49)  return { emoji: "🌫️",  label: "Fog" };
+  if (code <= 57)  return { emoji: "🌦️",  label: "Drizzle" };
+  if (code <= 67)  return { emoji: "🌧️",  label: "Rain" };
+  if (code <= 77)  return { emoji: "❄️",  label: "Snow" };
+  if (code <= 82)  return { emoji: "🌦️",  label: "Showers" };
+  if (code <= 86)  return { emoji: "🌨️",  label: "Snow showers" };
+  if (code <= 99)  return { emoji: "⛈️",  label: "Thunderstorm" };
+  return { emoji: "🌡️", label: "Unknown" };
+}
+
+export default function Weather() {
+  const [weather, setWeather] = useState<WeatherData | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!navigator.geolocation) { setError("No geolocation"); return; }
+    navigator.geolocation.getCurrentPosition(
+      async ({ coords }) => {
+        try {
+          const res = await fetch(
+            `https://api.open-meteo.com/v1/forecast?latitude=${coords.latitude}&longitude=${coords.longitude}&current=temperature_2m,weathercode,windspeed_10m&temperature_unit=celsius`
+          );
+          const data = await res.json();
+          setWeather({
+            temp: Math.round(data.current.temperature_2m),
+            windspeed: Math.round(data.current.windspeed_10m),
+            code: data.current.weathercode,
+          });
+        } catch { setError("Failed"); }
+      },
+      () => setError("Location denied")
+    );
+  }, []);
+
+  if (error) return <div className="weather-widget glass-sm"><span className="weather-meta">{error}</span></div>;
+
+  if (!weather) return (
+    <div className="weather-widget glass-sm">
+      <span className="weather-loading">loading…</span>
+    </div>
+  );
+
+  const { emoji, label } = interpretWeather(weather.code);
+
+  return (
+    <div className="weather-widget glass-sm">
+      <span className="weather-emoji">{emoji}</span>
+      <div className="weather-info">
+        <span className="weather-temp">{weather.temp}°C</span>
+        <span className="weather-meta">{label} · {weather.windspeed} km/h</span>
+      </div>
+    </div>
+  );
+}

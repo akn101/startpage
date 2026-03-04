@@ -1,0 +1,1088 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Base ─────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body, main {
+  height: 100%;
+  overflow: hidden;
+  background: #06060f;
+  color: #f0f0f8;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  -webkit-font-smoothing: antialiased;
+}
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}
+
+::selection { background: rgba(150, 120, 255, 0.4); color: #fff; }
+
+/* ─── Glass utility ─────────────────────────────────────── */
+.glass {
+  background: rgba(255, 255, 255, 0.055);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 18px;
+}
+
+.glass-sm {
+  background: rgba(255, 255, 255, 0.045);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  backdrop-filter: blur(16px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+}
+
+/* ─── Clock ─────────────────────────────────────────────── */
+.clock-root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.clock-time {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.2rem;
+  line-height: 1;
+}
+
+.clock-hm {
+  font-size: clamp(5rem, 15vw, 10rem);
+  font-weight: 200;
+  letter-spacing: -0.03em;
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow: 0 0 60px rgba(160, 120, 255, 0.25);
+}
+
+.clock-sec {
+  font-size: clamp(1.6rem, 4vw, 3.2rem);
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.35);
+  margin-bottom: 0.6rem;
+}
+
+.clock-date {
+  font-size: clamp(0.65rem, 1.2vw, 0.85rem);
+  font-weight: 400;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.28);
+}
+
+/* ─── Dim overlay after 22:00 / manual ──────────────────── */
+.dim-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0);
+  transition: background 2s ease;
+  pointer-events: none;
+  z-index: 5;
+}
+.dim-overlay.is-dim   { background: rgba(0, 0, 0, 0.58); }
+.dim-overlay.dim-25   { background: rgba(0, 0, 0, 0.25) !important; transition: background 0.4s; }
+.dim-overlay.dim-50   { background: rgba(0, 0, 0, 0.50) !important; transition: background 0.4s; }
+.dim-overlay.dim-75   { background: rgba(0, 0, 0, 0.75) !important; transition: background 0.4s; }
+.dim-overlay.dim-90   { background: rgba(0, 0, 0, 0.90) !important; transition: background 0.4s; }
+
+/* Also dim the screensaver canvas when dimming */
+.screensaver-dim canvas { transition: opacity 0.4s; }
+.screensaver-dim-25 canvas { opacity: 0.75 !important; }
+.screensaver-dim-50 canvas { opacity: 0.50 !important; }
+.screensaver-dim-75 canvas { opacity: 0.25 !important; }
+.screensaver-dim-90 canvas { opacity: 0.10 !important; }
+
+/* ─── Snap scroll container ─────────────────────────────── */
+.snap-container {
+  position: relative;
+  z-index: 10;
+  height: 100%;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.snap-container::-webkit-scrollbar { display: none; }
+
+/* ─── Sections ───────────────────────────────────────────── */
+.snap-section {
+  height: 100vh;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  gap: 1rem;
+}
+
+/* Section 1: landing — giant clock only */
+.section-landing {
+  gap: 1.4rem;
+}
+.section-landing .clock-hm {
+  font-size: clamp(6rem, 22vw, 15rem);
+}
+.section-landing .clock-sec {
+  font-size: clamp(2rem, 5vw, 4rem);
+  margin-bottom: 0.8rem;
+}
+
+/* Section 2: dashboard — compact clock + widgets + links */
+.section-dashboard {
+  justify-content: center;
+  gap: 0.9rem;
+  padding: 1.5rem 2rem;
+  overflow: hidden;
+}
+.section-dashboard .clock-hm {
+  font-size: clamp(3.5rem, 10vw, 6.5rem);
+}
+.section-dashboard .clock-sec {
+  font-size: clamp(1rem, 2.5vw, 2rem);
+  margin-bottom: 0.3rem;
+}
+.section-dashboard .clock-date {
+  font-size: clamp(0.55rem, 0.9vw, 0.7rem);
+}
+
+/* Section 3: feed */
+.section-feed {
+  height: auto;
+  min-height: 100vh;
+  scroll-snap-align: start;
+  justify-content: flex-start;
+  padding-top: 3rem;
+}
+
+/* ─── Mini-clock (fixed, appears when scrolled) ──────────── */
+.mini-clock-wrap {
+  position: fixed;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+.mini-clock-wrap.visible { opacity: 1; }
+.mini-clock {
+  font-size: 0.9rem;
+  font-weight: 300;
+  letter-spacing: 0.12em;
+  color: rgba(255,255,255,0.4);
+}
+
+/* ─── Search trigger (opens cmd+k) ──────────────────────── */
+.search-trigger {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  max-width: 480px;
+  background: rgba(255,255,255,0.045);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  backdrop-filter: blur(16px) saturate(140%);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s;
+}
+.search-trigger:hover {
+  border-color: rgba(150,120,255,0.3);
+  background: rgba(255,255,255,0.065);
+}
+.search-trigger-icon {
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.2);
+  flex-shrink: 0;
+}
+.search-trigger-placeholder {
+  flex: 1;
+  font-size: 0.82rem;
+  color: rgba(255,255,255,0.2);
+  font-family: "JetBrains Mono", monospace;
+}
+.search-trigger-kbd {
+  font-size: 0.6rem;
+  color: rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 4px;
+  padding: 0.1rem 0.35rem;
+  font-family: "JetBrains Mono", monospace;
+  flex-shrink: 0;
+}
+
+/* ─── Widget row ─────────────────────────────────────────── */
+.widget-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: stretch;
+  width: 100%;
+  max-width: 1080px;
+}
+.widget-row > * { flex: 1; min-width: 0; }
+
+/* ─── Quick links ────────────────────────────────────────── */
+.links-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  max-width: 1080px;
+  width: 100%;
+}
+@media (max-width: 720px) {
+  .links-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+.link-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.15s ease;
+}
+
+.link-item:hover { transform: scale(1.1); }
+
+.link-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.link-item:hover .link-icon {
+  border-color: rgba(255,255,255,0.25);
+  box-shadow: 0 0 14px rgba(150,120,255,0.2);
+}
+
+.link-label {
+  font-size: 0.6rem;
+  letter-spacing: 0.05em;
+  color: rgba(255,255,255,0.3);
+  text-align: center;
+}
+
+.link-fallback {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.5);
+}
+
+/* ─── Weather ────────────────────────────────────────────── */
+.weather-widget {
+  padding: 1rem 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.weather-temp {
+  font-size: 1.6rem;
+  font-weight: 200;
+  color: rgba(255,255,255,0.9);
+}
+
+.weather-meta {
+  font-size: 0.65rem;
+  color: rgba(255,255,255,0.3);
+  letter-spacing: 0.05em;
+}
+
+/* ─── Todos ──────────────────────────────────────────────── */
+.todos-widget {
+  padding: 1rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.todos-header {
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.25);
+  margin-bottom: 0.15rem;
+}
+
+.todo-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.7);
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.todo-item.done {
+  opacity: 0.3;
+  text-decoration: line-through;
+}
+
+.todo-check {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  border: 1px solid rgba(255,255,255,0.2);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.55rem;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.todo-item.done .todo-check {
+  background: rgba(150,120,255,0.4);
+  border-color: rgba(150,120,255,0.6);
+}
+
+.todos-empty {
+  font-size: 0.65rem;
+  color: rgba(255,255,255,0.18);
+  font-style: italic;
+}
+
+/* ─── Command palette ────────────────────────────────────── */
+.cmdk-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  z-index: 50;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 15vh;
+}
+
+.cmdk-dialog {
+  width: min(580px, 90vw);
+  background: rgba(12, 10, 22, 0.9);
+  -webkit-backdrop-filter: blur(40px) saturate(160%);
+  backdrop-filter: blur(40px) saturate(160%);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05);
+}
+
+[cmdk-input] {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  color: rgba(255,255,255,0.9);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.95rem;
+  padding: 1rem 1.1rem;
+  outline: none;
+}
+
+[cmdk-input]::placeholder { color: rgba(255,255,255,0.25); }
+
+[cmdk-list] {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+[cmdk-item] {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  color: rgba(255,255,255,0.65);
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+  margin: 0 0.4rem;
+}
+
+[cmdk-item][aria-selected="true"] {
+  background: rgba(150,120,255,0.18);
+  color: rgba(255,255,255,0.95);
+}
+
+[cmdk-item] .cmdk-icon { font-size: 0.9rem; width: 18px; text-align: center; }
+[cmdk-item] .cmdk-shortcut { margin-left: auto; font-size: 0.65rem; color: rgba(255,255,255,0.2); }
+
+[cmdk-group-heading] {
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.2);
+  padding: 0.6rem 1.15rem 0.3rem;
+}
+
+[cmdk-empty] {
+  padding: 1.2rem;
+  text-align: center;
+  font-size: 0.78rem;
+  color: rgba(255,255,255,0.2);
+}
+
+/* ─── Notification toasts ───────────────────────────────── */
+.toast-stack {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 100;
+}
+
+.toast-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 12px;
+  min-width: 240px;
+  max-width: 320px;
+  animation: slideUp 0.25s ease-out;
+  background: rgba(12, 10, 22, 0.88);
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+
+.toast-source {
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.toast-title { font-size: 0.7rem; color: rgba(255,255,255,0.4); }
+.toast-body  { font-size: 0.8rem; color: rgba(255,255,255,0.85); }
+
+.toast-dismiss {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.25);
+  cursor: pointer;
+  font-size: 0.75rem;
+  flex-shrink: 0;
+  transition: color 0.15s;
+}
+.toast-dismiss:hover { color: rgba(255,255,255,0.7); }
+
+.toast-icon    { font-size: 1rem; flex-shrink: 0; }
+.toast-content { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; flex: 1; }
+.toast-meta    { display: flex; align-items: center; gap: 0.4rem; }
+
+/* ─── Weather inner layout ───────────────────────────────── */
+.weather-info    { display: flex; flex-direction: column; gap: 0.1rem; }
+.weather-emoji   { font-size: 1.6rem; }
+.weather-loading { font-size: 0.65rem; color: rgba(255,255,255,0.25); }
+
+/* ─── Hint ───────────────────────────────────────────────── */
+.kbd-hint {
+  position: fixed;
+  bottom: 1.4rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.58rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.12);
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* ─── Access page ────────────────────────────────────────────── */
+.access-root {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #06060f;
+}
+
+.access-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.8rem 2rem;
+  width: min(320px, 90vw);
+}
+
+.access-label {
+  font-size: 0.6rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.25);
+}
+
+.access-input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.9);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 1.1rem;
+  letter-spacing: 0.2em;
+  padding: 0.4rem 0;
+  outline: none;
+  width: 100%;
+  transition: border-color 0.15s;
+}
+
+.access-input:focus {
+  border-bottom-color: rgba(150,120,255,0.5);
+}
+
+.access-input-error {
+  border-bottom-color: rgba(255,80,80,0.5) !important;
+}
+
+.access-error {
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(255,100,100,0.6);
+}
+
+/* ─── Time Tracker ───────────────────────────────────────── */
+.tracker-widget {
+  padding: 1rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.tracker-header {
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.25);
+  margin-bottom: 0.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tracker-stop-all {
+  background: none;
+  border: none;
+  color: rgba(255,100,100,0.5);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.55rem;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  padding: 0;
+  text-transform: uppercase;
+  transition: color 0.15s;
+}
+.tracker-stop-all:hover { color: rgba(255,100,100,0.9); }
+
+.tracker-active-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-bottom: 0.2rem;
+}
+
+.tracker-active-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.2rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+
+.tracker-active-label {
+  flex: 1;
+  font-size: 0.68rem;
+  color: rgba(255,255,255,0.7);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tracker-running-label {
+  font-size: 0.72rem;
+  color: rgba(150,120,255,0.8);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tracker-label-input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.8);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.75rem;
+  padding: 0.2rem 0;
+  outline: none;
+  width: 100%;
+  transition: border-color 0.15s;
+}
+
+.tracker-label-input:focus { border-bottom-color: rgba(150,120,255,0.4); }
+.tracker-label-input::placeholder { color: rgba(255,255,255,0.18); }
+
+.tracker-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.tracker-elapsed {
+  font-size: 1.1rem;
+  font-weight: 200;
+  letter-spacing: 0.05em;
+  color: rgba(255,255,255,0.85);
+  flex: 1;
+}
+
+.tracker-btn {
+  background: rgba(150,120,255,0.15);
+  border: 1px solid rgba(150,120,255,0.3);
+  border-radius: 6px;
+  color: rgba(150,120,255,0.9);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.3rem 0.6rem;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.tracker-btn:hover { background: rgba(150,120,255,0.25); border-color: rgba(150,120,255,0.5); }
+
+.tracker-btn.running {
+  background: rgba(255,100,100,0.1);
+  border-color: rgba(255,100,100,0.3);
+  color: rgba(255,130,130,0.9);
+}
+
+.tracker-btn.running:hover { background: rgba(255,100,100,0.2); }
+
+.tracker-sessions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.1rem;
+}
+
+.tracker-session {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.65rem;
+  color: rgba(255,255,255,0.35);
+}
+
+.tracker-session-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tracker-session-dur { color: rgba(150,120,255,0.6); flex-shrink: 0; }
+
+/* ─── Feed section ───────────────────────────────────────── */
+.feed-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  padding: 0 2rem 4rem;
+  max-width: 840px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+@media (max-width: 580px) {
+  .feed-section { grid-template-columns: 1fr; }
+}
+
+/* ─── GitHub PRs widget ──────────────────────────────────── */
+.feed-widget {
+  padding: 1rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.feed-widget-header {
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.25);
+  margin-bottom: 0.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.feed-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  text-decoration: none;
+  color: inherit;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  transition: opacity 0.15s;
+}
+
+.feed-item:last-child { border-bottom: none; }
+.feed-item:hover { opacity: 0.75; }
+
+.feed-item-title {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.75);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.feed-item-meta {
+  font-size: 0.6rem;
+  color: rgba(255,255,255,0.28);
+  letter-spacing: 0.03em;
+}
+
+.feed-empty {
+  font-size: 0.65rem;
+  color: rgba(255,255,255,0.18);
+  font-style: italic;
+}
+
+.feed-error {
+  font-size: 0.65rem;
+  color: rgba(255,100,100,0.4);
+  font-style: italic;
+}
+
+/* ─── Android FAB ────────────────────────────────────────── */
+.fab-cmdk {
+  display: flex;
+  position: fixed;
+  bottom: 5rem;
+  right: 1.2rem;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(150,120,255,0.18);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(150,120,255,0.3);
+  color: rgba(150,120,255,0.9);
+  font-size: 1.1rem;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  z-index: 45;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  transition: background 0.15s;
+}
+
+.fab-cmdk:hover { background: rgba(150,120,255,0.3); }
+
+
+/* ─── Scroll hint ────────────────────────────────────────── */
+.scroll-hint {
+  position: absolute;
+  bottom: 1.8rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.55rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.1);
+  pointer-events: none;
+  animation: bounce 2s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(4px); }
+}
+
+/* ─── Alarm widget ───────────────────────────────────────── */
+.alarm-widget {
+  padding: 1rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.alarm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.25);
+}
+
+.alarm-add-btn {
+  background: none;
+  border: none;
+  color: rgba(150,120,255,0.7);
+  font-size: 1rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 0.2rem;
+  transition: color 0.15s;
+}
+.alarm-add-btn:hover { color: rgba(150,120,255,1); }
+
+.alarm-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.alarm-time-input,
+.alarm-label-input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.85);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.8rem;
+  padding: 0.25rem 0;
+  outline: none;
+  width: 100%;
+  color-scheme: dark;
+}
+
+.alarm-time-input:focus,
+.alarm-label-input:focus { border-bottom-color: rgba(150,120,255,0.4); }
+.alarm-label-input::placeholder { color: rgba(255,255,255,0.18); font-size: 0.7rem; }
+
+.alarm-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.alarm-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  transition: opacity 0.15s;
+}
+.alarm-item.disabled { opacity: 0.35; }
+
+.alarm-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.1rem;
+  display: flex;
+  align-items: center;
+}
+
+.alarm-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.25);
+  transition: background 0.15s;
+}
+.alarm-dot.on {
+  background: rgba(150,120,255,0.8);
+  border-color: rgba(150,120,255,0.5);
+  box-shadow: 0 0 6px rgba(150,120,255,0.5);
+}
+
+.alarm-time {
+  font-size: 0.9rem;
+  font-weight: 300;
+  color: rgba(255,255,255,0.85);
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+
+.alarm-item-label {
+  flex: 1;
+  font-size: 0.65rem;
+  color: rgba(255,255,255,0.35);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.alarm-remove {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.2);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0 0.1rem;
+  flex-shrink: 0;
+  transition: color 0.15s;
+}
+.alarm-remove:hover { color: rgba(255,100,100,0.7); }
+
+.alarm-next {
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  color: rgba(150,120,255,0.5);
+  margin-top: 0.1rem;
+}
+
+.alarm-empty {
+  font-size: 0.65rem;
+  color: rgba(255,255,255,0.18);
+  font-style: italic;
+}
+
+.alarm-ringing {
+  background: rgba(255,200,50,0.12);
+  border: 1px solid rgba(255,200,50,0.3);
+  border-radius: 6px;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.7rem;
+  color: rgba(255,220,80,0.9);
+  cursor: pointer;
+  animation: ringPulse 0.6s ease-in-out infinite alternate;
+}
+
+@keyframes ringPulse {
+  from { background: rgba(255,200,50,0.08); }
+  to   { background: rgba(255,200,50,0.2); }
+}
+
+/* ─── Calendar widget ────────────────────────────────────── */
+.cal-group { margin-bottom: 0.5rem; }
+
+.cal-day-label {
+  font-size: 0.58rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(150,120,255,0.55);
+  margin-bottom: 0.25rem;
+}
+
+.cal-event {
+  padding: 0.3rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.cal-event:last-child { border-bottom: none; }
+
+.cal-event-title {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.78);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cal-event-time {
+  font-size: 0.6rem;
+  color: rgba(255,255,255,0.3);
+  margin-bottom: 0.1rem;
+}
+
+.cal-event-location {
+  font-size: 0.58rem;
+  color: rgba(255,255,255,0.22);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ─── Photo slideshow ────────────────────────────────────── */
+.photo-widget { overflow: hidden; }
+
+.photo-count {
+  margin-left: auto;
+  font-size: 0.55rem;
+  color: rgba(255,255,255,0.2);
+}
+
+.photo-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16/10;
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.04);
+}
+
+.photo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.photo-img.visible { opacity: 1; }
+
+.photo-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0,0,0,0.45);
+  border: none;
+  color: rgba(255,255,255,0.75);
+  font-size: 1.4rem;
+  line-height: 1;
+  width: 32px;
+  height: 48px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+.photo-nav:hover { background: rgba(0,0,0,0.65); }
+.photo-nav.prev { left: 0; border-radius: 0 4px 4px 0; }
+.photo-nav.next { right: 0; border-radius: 4px 0 0 4px; }
+
+.photo-caption {
+  font-size: 0.62rem;
+  color: rgba(255,255,255,0.28);
+  margin-top: 0.35rem;
+  font-style: italic;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ─── Animations ─────────────────────────────────────────── */
+@keyframes slideUp {
+  from { transform: translateY(0.75rem); opacity: 0; }
+  to   { transform: translateY(0);       opacity: 1; }
+}
