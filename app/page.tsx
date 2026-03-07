@@ -179,7 +179,7 @@ export default function Page() {
           {/* Section 1: Landing — big clock + search */}
           <section className="snap-section section-landing">
             <Clock />
-            <SearchBar />
+            <SearchBar autoFocus />
           </section>
 
           {/* Section 2: Dashboard — compact clock + widgets + links */}
