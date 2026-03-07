@@ -9,6 +9,7 @@ interface CalEvent {
   end: string;
   allDay: boolean;
   location?: string;
+  joinUrl?: string;
 }
 
 function formatEventTime(start: string, allDay: boolean): string {
@@ -87,7 +88,12 @@ export default function CalendarWidget() {
           {g.items.map((ev) => (
             <div key={ev.uid} className="cal-event">
               <div className="cal-event-time">{formatEventTime(ev.start, ev.allDay)}</div>
-              <div className="cal-event-title">{ev.summary}</div>
+              <div className="cal-event-title-row">
+                <span className="cal-event-title">{ev.summary}</span>
+                {ev.joinUrl && (
+                  <a href={ev.joinUrl} target="_blank" rel="noopener noreferrer" className="cal-join-btn">Join</a>
+                )}
+              </div>
               {ev.location && <div className="cal-event-location">{ev.location}</div>}
             </div>
           ))}

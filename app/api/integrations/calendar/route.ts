@@ -115,6 +115,7 @@ interface CalEvent {
   end: string;
   allDay: boolean;
   location?: string;
+  joinUrl?: string;
 }
 
 function parseIcalDate(val: string): { iso: string; allDay: boolean } {
@@ -156,6 +157,12 @@ function parseIcsBlock(ics: string): CalEvent | null {
     if (key === "UID")           ev.uid      = val;
     if (key === "SUMMARY")       ev.summary  = val.replace(/\\,/g, ",").replace(/\\n/g, " ");
     if (key === "LOCATION")      ev.location = val.replace(/\\,/g, ",");
+    if (key === "URL")           ev.joinUrl  = val.trim();
+    if (key === "X-GOOGLE-CONFERENCE") ev.joinUrl = val.trim();
+    if (key === "DESCRIPTION" && !ev.joinUrl) {
+      const match = val.match(/https?:\/\/(?:[^\s\\]+\.)?(?:teams\.microsoft\.com|meet\.google\.com|zoom\.us|whereby\.com|webex\.com)[^\s\\]*/i);
+      if (match) ev.joinUrl = match[0].replace(/\\n.*/, "").trim();
+    }
     if (key.startsWith("DTSTART")) {
       const parsed  = parseIcalDate(val);
       ev.start      = parsed.iso;

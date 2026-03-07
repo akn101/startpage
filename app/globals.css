@@ -1018,13 +1018,21 @@ html, body, main {
 }
 .cal-event:last-child { border-bottom: none; }
 
+.cal-event-title-row { display: flex; align-items: center; gap: 6px; min-width: 0; }
 .cal-event-title {
   font-size: 0.72rem;
   color: rgba(255,255,255,0.78);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  flex: 1; min-width: 0;
 }
+.cal-join-btn {
+  flex-shrink: 0; font-size: 0.6rem; padding: 1px 6px; border-radius: 4px;
+  background: rgba(91,158,246,0.2); color: #93c5fd; text-decoration: none;
+  transition: background 0.15s;
+}
+.cal-join-btn:hover { background: rgba(91,158,246,0.35); }
 
 .cal-event-time {
   font-size: 0.6rem;
