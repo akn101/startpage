@@ -115,6 +115,7 @@ export async function POST(req: Request) {
           Status: { select: { name: data.status ?? "Active" } },
           Color: { select: { name: data.color ?? "purple" } },
           is_public: { checkbox: data.is_public ?? false },
+          ...(data.category ? { Category: { select: { name: data.category } } } : {}),
         },
       }),
     });
@@ -147,4 +148,23 @@ export async function POST(req: Request) {
   }
 
   return Response.json({ error: "Unknown type" }, { status: 400 });
+}
+
+export async function PATCH(req: Request) {
+  const authed = isAuthenticated();
+  if (!authed) return Response.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { id, properties } = await req.json();
+  const res = await fetch(`https://api.notion.com/v1/pages/${id}`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${NOTION_TOKEN}`,
+      "Notion-Version": "2022-06-28",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ properties }),
+    cache: "no-store",
+  });
+  const data = await res.json();
+  return Response.json({ id: data.id });
 }

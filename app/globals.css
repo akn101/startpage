@@ -1173,3 +1173,112 @@ html, body, main {
 
 /* ─── Location retry button ──────────────────────────────── */
 .location-retry { background: none; border: none; cursor: pointer; font-size: 0.75rem; padding: 0 0.2rem; vertical-align: middle; }
+
+/* ─── GitHub widget tabs ─────────────────────────────────── */
+.gh-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  margin: 0 0 6px;
+}
+.gh-tab {
+  background: none; border: none;
+  color: rgba(255,255,255,0.35);
+  font-size: 11px; font-family: inherit;
+  padding: 4px 10px 7px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  display: flex; align-items: center; gap: 4px;
+  transition: color 0.15s;
+}
+.gh-tab.active { color: rgba(255,255,255,0.85); border-bottom-color: var(--accent, #9678ff); }
+.gh-tab:hover:not(.active) { color: rgba(255,255,255,0.55); }
+.gh-tab-count {
+  background: rgba(255,255,255,0.1); border-radius: 10px;
+  padding: 0 5px; font-size: 10px; line-height: 1.5;
+}
+.gh-item { display: flex; align-items: flex-start; gap: 6px; }
+.gh-item-body { display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1; }
+.ci-dot {
+  font-size: 10px; font-weight: 700; min-width: 14px;
+  text-align: center; flex-shrink: 0; margin-top: 2px;
+}
+.ci-pass    { color: #4ade80; }
+.ci-fail    { color: #f87171; }
+.ci-pending { color: #fbbf24; }
+
+/* ─── Task status button ─────────────────────────────────── */
+.task-status-btn {
+  width: 8px; height: 8px; border-radius: 50%;
+  border: 1.5px solid currentColor;
+  flex-shrink: 0; cursor: pointer; background: transparent;
+  padding: 0; transition: background 0.15s, transform 0.1s;
+}
+.task-status-btn:hover { transform: scale(1.4); }
+.task-status-todo     { color: rgba(255,255,255,0.3); }
+.task-status-progress { color: var(--accent, #9678ff); background: var(--accent, #9678ff); }
+.task-status-done     { color: #4ade80; background: #4ade80; }
+
+/* ─── Add project form ───────────────────────────────────── */
+.feed-header-btn {
+  background: none; border: none; cursor: pointer;
+  color: rgba(255,255,255,0.3); font-size: 0.9rem;
+  padding: 0 0.2rem; margin-left: auto; line-height: 1;
+  transition: color 0.15s;
+}
+.feed-header-btn:hover { color: rgba(255,255,255,0.7); }
+.project-add-form {
+  display: flex; gap: 6px; align-items: center;
+  padding: 8px 0 4px; flex-wrap: wrap;
+}
+.project-add-input {
+  flex: 1; min-width: 120px;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 4px; padding: 0.25rem 0.5rem;
+  font-size: 0.75rem; color: rgba(255,255,255,0.8); font-family: inherit;
+}
+.project-add-select {
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 4px; padding: 0.25rem 0.4rem;
+  font-size: 0.72rem; color: rgba(255,255,255,0.6); font-family: inherit;
+  cursor: pointer;
+}
+
+/* ─── Assignments widget ─────────────────────────────────── */
+.assignments-widget { padding: 1.2rem; display: flex; flex-direction: column; gap: 0; }
+.assignments-list   { display: flex; flex-direction: column; gap: 6px; max-height: 300px; overflow-y: auto; }
+.assignment-item {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 6px 4px; border-radius: 6px;
+  transition: background 0.15s;
+}
+.assignment-item:hover { background: rgba(255,255,255,0.03); }
+.assignment-item.overdue { background: rgba(248,113,113,0.05); }
+.assign-status-btn {
+  font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.06em;
+  padding: 2px 7px; border-radius: 10px; border: none;
+  cursor: pointer; flex-shrink: 0; white-space: nowrap;
+  font-family: inherit; font-weight: 500; margin-top: 1px;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.assign-status-btn:hover { opacity: 0.8; transform: scale(1.05); }
+.assign-status-todo      { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5); }
+.assign-status-progress  { background: rgba(150,120,255,0.2);  color: #c4aeff; }
+.assign-status-submitted { background: rgba(91,158,246,0.2);   color: #93c5fd; }
+.assign-status-done      { background: rgba(74,222,128,0.15);  color: #86efac; }
+.assign-body  { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.assign-title {
+  font-size: 0.78rem; color: rgba(255,255,255,0.82);
+  text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.assign-title:hover { color: var(--accent, #9678ff); }
+.assign-meta    { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.assign-subject {
+  font-size: 0.62rem; color: rgba(255,255,255,0.35);
+  background: rgba(255,255,255,0.05); padding: 1px 5px; border-radius: 4px;
+}
+.assign-due         { font-size: 0.65rem; color: rgba(255,255,255,0.35); }
+.assign-due.urgent  { color: #fbbf24; }
+.assign-due.overdue { color: #f87171; }
+.assign-duration    { font-size: 0.62rem; color: rgba(255,255,255,0.28); }

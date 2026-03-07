@@ -23,6 +23,7 @@ const ProjectTracker   = dynamic(() => import("@/components/ProjectTracker"),   
 const CameraMonitor    = dynamic(() => import("@/components/CameraMonitor"),    { ssr: false });
 const RecentVisitors   = dynamic(() => import("@/components/RecentVisitors"),   { ssr: false });
 const MiniClock        = dynamic(() => import("@/components/MiniClock"),         { ssr: false });
+const Assignments      = dynamic(() => import("@/components/Assignments"),       { ssr: false });
 
 type DimLevel = 0 | 25 | 50 | 75 | 90;
 
@@ -197,6 +198,7 @@ export default function Page() {
           {/* Section 3: Feed tiles */}
           <section className="snap-section section-feed">
             <div className="feed-section">
+              <Assignments />
               <ProjectTracker />
               <GitHubPRs />
               <CalendarWidget />

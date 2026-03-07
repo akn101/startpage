@@ -2,30 +2,35 @@
 
 import { useEffect, useState } from "react";
 
-interface PR {
-  title: string;
-  url: string;
-  repo: string;
-  createdAt: string;
-}
+type CIState = "SUCCESS" | "FAILURE" | "ERROR" | "PENDING" | null;
+
+interface Item { title: string; url: string; repo: string; owner: string; createdAt: string; ci?: CIState }
+interface Repo  { name: string; owner: string; url: string; pushedAt: string }
+interface GHData { prs: Item[]; reviews: Item[]; issues: Item[]; repos: Repo[] }
+
+const CI_ICON:  Record<string, string> = { SUCCESS: "✓", FAILURE: "✗", ERROR: "✗", PENDING: "●" };
+const CI_CLASS: Record<string, string> = { SUCCESS: "ci-pass", FAILURE: "ci-fail", ERROR: "ci-fail", PENDING: "ci-pending" };
 
 function timeAgo(iso: string) {
-  const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
-  if (days === 0) return "today";
-  if (days === 1) return "1d ago";
-  if (days < 30) return `${days}d ago`;
-  return `${Math.floor(days / 30)}mo ago`;
+  const d = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
+  if (d === 0) return "today";
+  if (d === 1) return "1d ago";
+  if (d < 30) return `${d}d ago`;
+  return `${Math.floor(d / 30)}mo ago`;
 }
 
-export default function GitHubPRs() {
-  const [prs, setPrs] = useState<PR[]>([]);
-  const [error, setError] = useState(false);
+type Tab = "prs" | "reviews" | "issues" | "repos";
+
+export default function GitHubWidget() {
+  const [data, setData] = useState<GHData>({ prs: [], reviews: [], issues: [], repos: [] });
+  const [tab, setTab]   = useState<Tab>("prs");
   const [loading, setLoading] = useState(true);
+  const [error, setError]     = useState(false);
 
   const load = () => {
     fetch("/api/integrations/github")
       .then((r) => r.json())
-      .then((d) => { setPrs(d.prs ?? []); setLoading(false); })
+      .then((d) => { setData({ prs: d.prs ?? [], reviews: d.reviews ?? [], issues: d.issues ?? [], repos: d.repos ?? [] }); setLoading(false); })
       .catch(() => { setError(true); setLoading(false); });
   };
 
@@ -33,20 +38,62 @@ export default function GitHubPRs() {
     load();
     window.addEventListener("refreshData", load);
     return () => window.removeEventListener("refreshData", load);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); // eslint-disable-line
+
+  const TABS: { key: Tab; label: string; count: number | null }[] = [
+    { key: "prs",     label: "My PRs",  count: data.prs.length },
+    { key: "reviews", label: "Reviews", count: data.reviews.length },
+    { key: "issues",  label: "Issues",  count: data.issues.length },
+    { key: "repos",   label: "Recent",  count: null },
+  ];
+
+  const listItems = tab === "repos" ? null : data[tab];
+  const EMPTY: Record<Tab, string> = {
+    prs: "no open PRs", reviews: "no reviews requested",
+    issues: "no assigned issues", repos: "no recent activity",
+  };
 
   return (
     <div className="feed-widget glass-sm">
-      <div className="feed-widget-header">Open PRs</div>
+      <div className="feed-widget-header">GitHub</div>
+
+      <div className="gh-tabs">
+        {TABS.map((t) => (
+          <button key={t.key} type="button" className={`gh-tab${tab === t.key ? " active" : ""}`} onClick={() => setTab(t.key)}>
+            {t.label}
+            {(t.count ?? 0) > 0 && <span className="gh-tab-count">{t.count}</span>}
+          </button>
+        ))}
+      </div>
+
       {loading && <div className="feed-empty">loading…</div>}
-      {error && <div className="feed-error">could not load PRs</div>}
-      {!loading && !error && prs.length === 0 && (
-        <div className="feed-empty">no open PRs</div>
+      {!loading && error && <div className="feed-error">could not load</div>}
+
+      {!loading && !error && tab !== "repos" && (listItems as Item[]).length === 0 && (
+        <div className="feed-empty">{EMPTY[tab]}</div>
       )}
-      {prs.map((pr) => (
-        <a key={pr.url} href={pr.url} target="_blank" rel="noopener noreferrer" className="feed-item">
-          <span className="feed-item-title">{pr.title}</span>
-          <span className="feed-item-meta">{pr.repo} · {timeAgo(pr.createdAt)}</span>
+
+      {!loading && !error && tab !== "repos" && (listItems as Item[]).map((item) => (
+        <a key={item.url} href={item.url} target="_blank" rel="noopener noreferrer" className="feed-item gh-item">
+          {item.ci != null && (
+            <span className={`ci-dot ${CI_CLASS[item.ci] ?? ""}`} title={item.ci}>{CI_ICON[item.ci]}</span>
+          )}
+          <span className="gh-item-body">
+            <span className="feed-item-title">{item.title}</span>
+            <span className="feed-item-meta">{item.owner}/{item.repo} · {timeAgo(item.createdAt)}</span>
+          </span>
+        </a>
+      ))}
+
+      {!loading && !error && tab === "repos" && data.repos.length === 0 && (
+        <div className="feed-empty">{EMPTY.repos}</div>
+      )}
+      {!loading && !error && tab === "repos" && data.repos.map((repo) => (
+        <a key={repo.url} href={repo.url} target="_blank" rel="noopener noreferrer" className="feed-item gh-item">
+          <span className="gh-item-body">
+            <span className="feed-item-title">{repo.owner}/{repo.name}</span>
+            <span className="feed-item-meta">{timeAgo(repo.pushedAt)}</span>
+          </span>
         </a>
       ))}
     </div>
