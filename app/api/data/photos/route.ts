@@ -17,7 +17,7 @@ export async function GET() {
     const { data: signed } = await db.storage.from("photos").createSignedUrls(storagePaths, 3600);
     if (signed) {
       for (const s of signed) {
-        if (s.signedUrl) signedMap[s.path] = s.signedUrl;
+        if (s.signedUrl && s.path) signedMap[s.path] = s.signedUrl;
       }
     }
   }
