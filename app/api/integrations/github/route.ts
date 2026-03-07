@@ -12,6 +12,12 @@ interface GQLPRNode {
   repository: { name: string; owner: { login: string } };
   commits?: { nodes: { commit: { statusCheckRollup: { state: string } | null } }[] };
 }
+interface GQLRepoNode {
+  nameWithOwner: string;
+  url: string;
+  pushedAt: string;
+  defaultBranchRef: { target: { statusCheckRollup: { state: string } | null } | null } | null;
+}
 interface GQLIssueNode {
   title: string;
   url: string;
@@ -67,22 +73,22 @@ export async function GET() {
   const reposQuery = `{
     viewer {
       repositoriesContributedTo(
-        first: 15
+        first: 10
         includeUserRepositories: true
         contributionTypes: [COMMIT, PULL_REQUEST]
         orderBy: { field: PUSHED_AT, direction: DESC }
       ) {
         nodes {
-          nameWithOwner
-          url
-          pushedAt
-          defaultBranchRef {
-            target {
-              ... on Commit {
-                statusCheckRollup { state }
-              }
-            }
-          }
+          nameWithOwner url pushedAt
+          defaultBranchRef { target { ... on Commit { statusCheckRollup { state } } } }
+        }
+      }
+    }
+    org: organization(login: "auracarehq") {
+      repositories(first: 20, orderBy: { field: PUSHED_AT, direction: DESC }) {
+        nodes {
+          nameWithOwner url pushedAt
+          defaultBranchRef { target { ... on Commit { statusCheckRollup { state } } } }
         }
       }
     }
@@ -96,15 +102,11 @@ export async function GET() {
     }>(query),
     graphql<{
       viewer: {
-        repositoriesContributedTo: {
-          nodes: {
-            nameWithOwner: string;
-            url: string;
-            pushedAt: string;
-            defaultBranchRef: { target: { statusCheckRollup: { state: string } | null } | null } | null;
-          }[];
-        };
+        repositoriesContributedTo: { nodes: GQLRepoNode[] };
       };
+      org: {
+        repositories: { nodes: GQLRepoNode[] };
+      } | null;
     }>(reposQuery),
   ]);
 
@@ -135,11 +137,24 @@ export async function GET() {
     ci: null as CIState,
   }));
 
-  const repos = (reposGql?.viewer?.repositoriesContributedTo?.nodes ?? []).map((r) => {
-    const [owner, name] = r.nameWithOwner.split("/");
-    const ci = (r.defaultBranchRef?.target?.statusCheckRollup?.state ?? null) as CIState;
-    return { name, owner, url: r.url, pushedAt: r.pushedAt, ci };
-  });
+  const repoNodes: GQLRepoNode[] = [
+    ...(reposGql?.viewer?.repositoriesContributedTo?.nodes ?? []),
+    ...(reposGql?.org?.repositories?.nodes ?? []),
+  ];
+  // Deduplicate by URL, keep latest pushedAt, sort descending
+  const repoMap = new Map<string, GQLRepoNode>();
+  for (const r of repoNodes) {
+    const existing = repoMap.get(r.url);
+    if (!existing || r.pushedAt > existing.pushedAt) repoMap.set(r.url, r);
+  }
+  const repos = [...repoMap.values()]
+    .sort((a, b) => b.pushedAt.localeCompare(a.pushedAt))
+    .slice(0, 20)
+    .map((r) => {
+      const [owner, name] = r.nameWithOwner.split("/");
+      const ci = (r.defaultBranchRef?.target?.statusCheckRollup?.state ?? null) as CIState;
+      return { name, owner, url: r.url, pushedAt: r.pushedAt, ci };
+    });
 
   return Response.json({ prs, reviews, issues, repos });
 }

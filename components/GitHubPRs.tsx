@@ -23,7 +23,7 @@ type Tab = "prs" | "reviews" | "issues" | "repos";
 
 export default function GitHubWidget() {
   const [data, setData] = useState<GHData>({ prs: [], reviews: [], issues: [], repos: [] });
-  const [tab, setTab]   = useState<Tab>("prs");
+  const [tab, setTab]   = useState<Tab>("repos");
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState(false);
 
