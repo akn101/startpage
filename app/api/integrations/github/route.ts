@@ -41,7 +41,7 @@ export async function GET() {
   if (!GH_TOKEN) return Response.json({ prs: [], reviews: [], issues: [], repos: [] });
 
   const query = `{
-    myPRs: search(query: "is:pr is:open author:${GH_USER} org:auracarehq org:akn101", type: ISSUE, first: 8) {
+    myPRs: search(query: "is:pr is:open author:${GH_USER} org:auracarehq org:auracare-org org:akn101", type: ISSUE, first: 8) {
       nodes {
         ... on PullRequest {
           title url createdAt
@@ -52,7 +52,7 @@ export async function GET() {
         }
       }
     }
-    reviews: search(query: "is:pr is:open review-requested:${GH_USER} org:auracarehq org:akn101", type: ISSUE, first: 5) {
+    reviews: search(query: "is:pr is:open review-requested:${GH_USER} org:auracarehq org:auracare-org org:akn101", type: ISSUE, first: 5) {
       nodes {
         ... on PullRequest {
           title url createdAt
@@ -60,7 +60,7 @@ export async function GET() {
         }
       }
     }
-    issues: search(query: "is:issue is:open assignee:${GH_USER} org:auracarehq org:akn101 -label:ci -label:automated", type: ISSUE, first: 8) {
+    issues: search(query: "is:issue is:open assignee:${GH_USER} org:auracarehq org:auracare-org org:akn101 -label:ci -label:automated", type: ISSUE, first: 8) {
       nodes {
         ... on Issue {
           title url createdAt
@@ -84,7 +84,15 @@ export async function GET() {
         }
       }
     }
-    org: organization(login: "auracarehq") {
+    org1: organization(login: "auracarehq") {
+      repositories(first: 20, orderBy: { field: PUSHED_AT, direction: DESC }) {
+        nodes {
+          nameWithOwner url pushedAt
+          defaultBranchRef { target { ... on Commit { statusCheckRollup { state } } } }
+        }
+      }
+    }
+    org2: organization(login: "auracare-org") {
       repositories(first: 20, orderBy: { field: PUSHED_AT, direction: DESC }) {
         nodes {
           nameWithOwner url pushedAt
@@ -101,12 +109,9 @@ export async function GET() {
       issues:  { nodes: GQLIssueNode[] };
     }>(query),
     graphql<{
-      viewer: {
-        repositoriesContributedTo: { nodes: GQLRepoNode[] };
-      };
-      org: {
-        repositories: { nodes: GQLRepoNode[] };
-      } | null;
+      viewer: { repositoriesContributedTo: { nodes: GQLRepoNode[] } };
+      org1: { repositories: { nodes: GQLRepoNode[] } } | null;
+      org2: { repositories: { nodes: GQLRepoNode[] } } | null;
     }>(reposQuery),
   ]);
 
@@ -140,7 +145,8 @@ export async function GET() {
 
   const repoNodes: GQLRepoNode[] = [
     ...(reposGql?.viewer?.repositoriesContributedTo?.nodes ?? []),
-    ...(reposGql?.org?.repositories?.nodes ?? []),
+    ...(reposGql?.org1?.repositories?.nodes ?? []),
+    ...(reposGql?.org2?.repositories?.nodes ?? []),
   ].filter(Boolean) as GQLRepoNode[];
   // Deduplicate by URL, keep latest pushedAt, sort descending
   const repoMap = new Map<string, GQLRepoNode>();
