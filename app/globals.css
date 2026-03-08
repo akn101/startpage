@@ -1230,13 +1230,21 @@ html, body, main {
 
 /* ─── Recent Visitors widget ─────────────────────────────── */
 .visitors-widget { padding: 1.2rem; display: flex; flex-direction: column; gap: 0.6rem; }
-.visitors-list   { display: flex; flex-direction: column; gap: 0.5rem; max-height: 240px; overflow-y: auto; }
-.visitor-item    { display: flex; align-items: center; gap: 0.6rem; }
-.visitor-thumb   { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; opacity: 0.85; }
-.visitor-thumb-placeholder { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.06); font-size: 1rem; }
-.visitor-info    { display: flex; flex-direction: column; gap: 0.1rem; }
+.visitors-list   { display: flex; flex-direction: column; gap: 0.5rem; max-height: 400px; overflow-y: auto; }
+.visitor-item    { display: flex; align-items: center; gap: 0.6rem; cursor: pointer; flex-wrap: wrap;
+                   border-radius: 6px; padding: 0.25rem; transition: background 0.15s; }
+.visitor-item:hover { background: rgba(255,255,255,0.04); }
+.visitor-item.expanded { background: rgba(255,255,255,0.03); }
+.visitor-thumb   { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; opacity: 0.85; flex-shrink: 0; }
+.visitor-thumb-placeholder { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.06); font-size: 1rem; flex-shrink: 0; }
+.visitor-info    { display: flex; flex-direction: column; gap: 0.1rem; flex: 1; }
 .visitor-label   { font-size: 0.75rem; color: rgba(255,255,255,0.8); }
 .visitor-time    { font-size: 0.65rem; color: rgba(255,255,255,0.35); }
+.visitor-clip-hint    { font-size: 0.6rem; color: rgba(255,255,255,0.2); margin-left: auto; }
+.visitor-clip-loading { font-size: 0.65rem; color: rgba(255,255,255,0.25); margin-left: auto; }
+.visitor-clip-player  { width: 100%; margin-top: 0.4rem; }
+.visitor-clip-video   { width: 100%; border-radius: 6px; max-height: 180px; background: #000; display: block; }
+.visitor-clip-none    { font-size: 0.6rem; color: rgba(255,255,255,0.2); font-style: italic; }
 
 /* ─── Location retry button ──────────────────────────────── */
 .location-retry { background: none; border: none; cursor: pointer; font-size: 0.75rem; padding: 0 0.2rem; vertical-align: middle; }
