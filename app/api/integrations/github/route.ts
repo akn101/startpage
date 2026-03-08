@@ -60,7 +60,7 @@ export async function GET() {
         }
       }
     }
-    issues: search(query: "is:issue is:open assignee:${GH_USER} org:auracarehq org:akn101", type: ISSUE, first: 8) {
+    issues: search(query: "is:issue is:open assignee:${GH_USER} org:auracarehq org:akn101 -label:ci -label:automated", type: ISSUE, first: 8) {
       nodes {
         ... on Issue {
           title url createdAt
@@ -128,7 +128,8 @@ export async function GET() {
     ci: null as CIState,
   }));
 
-  const issues = (gql?.issues?.nodes ?? []).map((n) => ({
+  const ciTitlePattern = /^(run (cancelled|failed|succeeded)|deploy|build)/i;
+  const issues = (gql?.issues?.nodes ?? []).filter((n) => !ciTitlePattern.test(n.title)).map((n) => ({
     title: n.title,
     url: n.url,
     repo: n.repository.name,

@@ -732,7 +732,7 @@ html, body, main {
 /* ─── Feed section ───────────────────────────────────────── */
 .feed-section {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 1rem;
   padding: 0 2rem 4rem;
   max-width: 840px;
