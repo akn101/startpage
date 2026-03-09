@@ -56,19 +56,22 @@ async function matchTodosToProjects(
     const response = await bedrock.messages.create({
       model: "eu.anthropic.claude-3-haiku-20240307-v1:0",
       max_tokens: 500,
-      system: `You match a list of todos to projects. Return ONLY a valid JSON array with no extra text, in the format: [{"index": 1, "project": "exact project name or null"}, ...]. Use null if no project fits.`,
+      system: `You match a list of todos to projects. Return ONLY a valid JSON array with no extra text or markdown, in the format: [{"index": 1, "project": "exact project name"}, {"index": 2, "project": null}, ...]. Use JSON null (not the string "null") when no project fits.`,
       messages: [{
         role: "user",
         content: `Projects: ${projectNames.join(", ")}\n\nTodos:\n${todoList}`,
       }],
     });
 
-    const text = response.content[0]?.type === "text" ? response.content[0].text.trim() : "[]";
+    let text = response.content[0]?.type === "text" ? response.content[0].text.trim() : "[]";
+    // Strip markdown code blocks if present
+    text = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
     const parsed: { index: number; project: string | null }[] = JSON.parse(text);
 
     return todos.map((todo, i) => {
       const match = parsed.find((p) => p.index === i + 1);
-      const projectName = match?.project ?? null;
+      // Treat the string "null" as no match in case the model returns it literally
+      const projectName = (match?.project === "null" ? null : match?.project) ?? null;
       // Verify the returned name is actually in the projects list
       const verified = projectName
         ? (projectNames.find((p) => p.toLowerCase() === projectName.toLowerCase()) ?? null)
