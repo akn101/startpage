@@ -29,6 +29,18 @@ function motionScore(prev: ImageData, curr: ImageData): number {
   return changed / total;
 }
 
+/** Strip Cluster elements from a WebM header chunk, keeping only EBML+Segment metadata */
+async function extractWebMMetadata(headerBlob: Blob): Promise<Blob> {
+  const buf = new Uint8Array(await headerBlob.arrayBuffer());
+  // Cluster element ID: 0x1F 0x43 0xB6 0x75
+  for (let i = 4; i < buf.length - 4; i++) {
+    if (buf[i] === 0x1F && buf[i+1] === 0x43 && buf[i+2] === 0xB6 && buf[i+3] === 0x75) {
+      return new Blob([buf.slice(0, i)], { type: headerBlob.type });
+    }
+  }
+  return headerBlob; // no cluster found, return as-is
+}
+
 function captureJpeg(video: HTMLVideoElement, canvas: HTMLCanvasElement): string | null {
   const ctx = canvas.getContext("2d");
   if (!ctx) return null;
@@ -142,19 +154,23 @@ export default function CameraMonitor({ enabled = true }: { enabled?: boolean })
             capturingPostRef.current = false;
             // Assemble and save clip asynchronously
             const header = headerChunkRef.current;
-            if (header) {
-              const blob = new Blob(
-                [header, ...preBufferRef.current, ...postBufferRef.current],
-                { type: mimeType },
-              );
-              saveClip({
-                id: crypto.randomUUID(),
-                timestamp: captureTimestampRef.current,
-                faceLabel: captureLabelRef.current,
-                blob,
-              }).catch(() => {});
-            }
+            const preBufs = [...preBufferRef.current];
+            const postBufs = [...postBufferRef.current];
             postBufferRef.current = [];
+            if (header) {
+              extractWebMMetadata(header).then((metadata) => {
+                const blob = new Blob(
+                  [metadata, ...preBufs, ...postBufs],
+                  { type: mimeType },
+                );
+                saveClip({
+                  id: crypto.randomUUID(),
+                  timestamp: captureTimestampRef.current,
+                  faceLabel: captureLabelRef.current,
+                  blob,
+                }).catch(() => {});
+              });
+            }
           }
         } else {
           // Keep a rolling window of the last PRE_BUFFER_CHUNKS chunks
