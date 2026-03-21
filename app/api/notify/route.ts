@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { broadcastNotification, NotificationPayload } from "@/lib/notifications";
-import { randomUUID } from "crypto";
+import { db } from "@/lib/supabase-server";
 
 export async function POST(req: NextRequest) {
   const apiKey = req.headers.get("x-api-key");
-
   if (!apiKey || apiKey !== process.env.NOTIFY_API_KEY) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -17,24 +15,19 @@ export async function POST(req: NextRequest) {
   }
 
   if (!body.title || !body.body) {
-    return NextResponse.json(
-      { error: "title and body are required" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "title and body are required" }, { status: 400 });
   }
 
-  const payload: NotificationPayload = {
-    id: randomUUID(),
-    title: body.title,
-    body: body.body,
-    source:
-      body.source === "android" || body.source === "openclaw"
-        ? body.source
-        : "other",
-    timestamp: Date.now(),
-  };
+  const source =
+    body.source === "android" || body.source === "openclaw" ? body.source : "other";
 
-  broadcastNotification(payload);
+  const { data, error } = await db
+    .from("notifications")
+    .insert({ title: body.title, body: body.body, source })
+    .select("id")
+    .single();
 
-  return NextResponse.json({ ok: true, id: payload.id });
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  return NextResponse.json({ ok: true, id: data.id });
 }

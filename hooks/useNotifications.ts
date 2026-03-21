@@ -4,52 +4,51 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { NotificationPayload } from "@/lib/notifications";
 
 const TOAST_DURATION_MS = 5000;
-const RECONNECT_DELAY_MS = 1500;
+const POLL_INTERVAL_MS = 8_000;
 
 export function useNotifications() {
   const [toasts, setToasts] = useState<NotificationPayload[]>([]);
-  const esRef = useRef<EventSource | null>(null);
-  const deadRef = useRef(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastSeenRef = useRef<number>(Date.now());
+  const seenIdsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
-    deadRef.current = false;
+    async function poll() {
+      try {
+        const res = await fetch(
+          `/api/notifications/recent?since=${lastSeenRef.current}`,
+          { cache: "no-store" }
+        );
+        if (!res.ok) return;
+        const { notifications } = await res.json();
+        if (!notifications?.length) return;
 
-    function connect() {
-      if (deadRef.current) return;
-      const es = new EventSource("/api/notifications/stream");
-      esRef.current = es;
+        lastSeenRef.current = Date.now();
 
-      es.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          if (data.type === "ping" || data.type === "connected") return;
-          const payload = data as NotificationPayload;
+        for (const n of notifications) {
+          if (seenIdsRef.current.has(n.id)) continue;
+          seenIdsRef.current.add(n.id);
+
+          const payload: NotificationPayload = {
+            id: n.id,
+            title: n.title,
+            body: n.body,
+            source: n.source,
+            timestamp: new Date(n.created_at).getTime(),
+          };
+
           setToasts((prev) => [...prev, payload]);
           setTimeout(() => {
             setToasts((prev) => prev.filter((t) => t.id !== payload.id));
           }, TOAST_DURATION_MS);
-        } catch {
-          // ignore malformed events
         }
-      };
-
-      // Close and reconnect after Vercel's 300s serverless timeout
-      es.onerror = () => {
-        es.close();
-        if (!deadRef.current) {
-          timerRef.current = setTimeout(connect, RECONNECT_DELAY_MS);
-        }
-      };
+      } catch {
+        // silently retry next interval
+      }
     }
 
-    connect();
-
-    return () => {
-      deadRef.current = true;
-      if (timerRef.current) clearTimeout(timerRef.current);
-      esRef.current?.close();
-    };
+    poll();
+    const id = setInterval(poll, POLL_INTERVAL_MS);
+    return () => clearInterval(id);
   }, []);
 
   const dismiss = useCallback((id: string) => {
