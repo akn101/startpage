@@ -158,11 +158,12 @@ html, body, main {
 
 /* Section 3: feed */
 .section-feed {
-  height: auto;
-  min-height: 100vh;
+  height: 100vh;
+  overflow-y: auto;
   scroll-snap-align: start;
   justify-content: flex-start;
   padding-top: 3rem;
+  align-items: stretch;
 }
 
 /* Section 4: display */
@@ -1596,6 +1597,95 @@ html, body, main {
   position: fixed;
   inset: 0;
   z-index: 200;
+}
+
+/* ── Display panel slot (for preloading) ─────────────────── */
+.display-panel-slot {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ── Split panel (2-column) ──────────────────────────────── */
+.display-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.display-split-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 0.75rem 0.9rem;
+  overflow: hidden;
+  min-height: 0;
+  border-right: 1px solid #e8e8e8;
+}
+.display-split-col:last-child { border-right: none; }
+
+.display-split-header {
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #888;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 0.25rem;
+  flex-shrink: 0;
+}
+
+.display-split-list {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.display-split-item {
+  display: flex;
+  gap: 0.4rem;
+  align-items: flex-start;
+  font-size: 0.76rem;
+  line-height: 1.35;
+  min-width: 0;
+}
+
+.display-split-item-dot {
+  flex-shrink: 0;
+  font-size: 0.68rem;
+  color: #888;
+  min-width: 1rem;
+  padding-top: 0.05rem;
+}
+
+.display-split-item-text {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.display-split-item-badge {
+  font-size: 0.6rem;
+  color: #888;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.display-split-stat {
+  font-size: 0.62rem;
+  color: #666;
+  border-top: 1px solid #eee;
+  padding-top: 0.3rem;
+  margin-top: auto;
+  flex-shrink: 0;
 }
 
 /* ── Morning panel layout ───────────────────────────────── */

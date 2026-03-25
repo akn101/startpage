@@ -3,24 +3,21 @@
 import React, { useState, useEffect, useCallback } from "react";
 import GlancePanel      from "./panels/GlancePanel";
 import MorningPanel     from "./panels/MorningPanel";
-import TasksPanel       from "./panels/TasksPanel";
-import FocusPanel       from "./panels/FocusPanel";
-import ProductivityPanel from "./panels/ProductivityPanel";
-import ProjectsPanel    from "./panels/ProjectsPanel";
-import GitHubGridPanel  from "./panels/GitHubGridPanel";
+import DashboardPanel   from "./panels/DashboardPanel";
+import DevPanel         from "./panels/DevPanel";
 import HackerNewsPanel  from "./panels/HackerNewsPanel";
+import FocusPanel       from "./panels/FocusPanel";
 
 interface PanelConfig { name: string; component: React.ComponentType; defaultMs: number }
 
+// 6 panels — Dashboard combines Tasks+Productivity, Dev combines Projects+GitHub
 const PANELS: PanelConfig[] = [
-  { name: "Glance",       component: GlancePanel,       defaultMs: 25_000 },
-  { name: "Morning",      component: MorningPanel,      defaultMs: 25_000 },
-  { name: "Tasks",        component: TasksPanel,        defaultMs: 20_000 },
-  { name: "Focus",        component: FocusPanel,        defaultMs: 15_000 },
-  { name: "Productivity", component: ProductivityPanel, defaultMs: 20_000 },
-  { name: "Projects",     component: ProjectsPanel,     defaultMs: 20_000 },
-  { name: "GitHub",       component: GitHubGridPanel,   defaultMs: 20_000 },
-  { name: "HackerNews",   component: HackerNewsPanel,   defaultMs: 25_000 },
+  { name: "Glance",      component: GlancePanel,     defaultMs: 25_000 },
+  { name: "Morning",     component: MorningPanel,    defaultMs: 28_000 },
+  { name: "Dashboard",   component: DashboardPanel,  defaultMs: 22_000 },
+  { name: "Dev",         component: DevPanel,        defaultMs: 22_000 },
+  { name: "HackerNews",  component: HackerNewsPanel, defaultMs: 25_000 },
+  { name: "Focus",       component: FocusPanel,      defaultMs: 15_000 },
 ];
 
 interface Props {
@@ -31,15 +28,15 @@ export default function DisplayShell({ inline = false }: Props) {
   const [current, setCurrent] = useState(0);
   const [paused, setPaused]   = useState(false);
 
-  // Global interval override from localStorage (in ms); per-panel defaults used otherwise
   const globalOverride =
     typeof window !== "undefined"
       ? Number(localStorage.getItem("sp_display_interval") || 0)
       : 0;
 
-  const durationForPanel = useCallback((idx: number) => {
-    return globalOverride > 0 ? globalOverride : PANELS[idx].defaultMs;
-  }, [globalOverride]);
+  const durationForPanel = useCallback(
+    (idx: number) => (globalOverride > 0 ? globalOverride : PANELS[idx].defaultMs),
+    [globalOverride]
+  );
 
   const advance = useCallback(() => {
     setCurrent((c) => (c + 1) % PANELS.length);
@@ -62,16 +59,26 @@ export default function DisplayShell({ inline = false }: Props) {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  const PanelComponent = PANELS[current].component;
-
   return (
     <div
       className={inline ? "display-root-inline" : "display-root"}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
+      {/* All panels mounted simultaneously so data pre-loads; inactive ones are hidden */}
       <div className="display-panel">
-        <PanelComponent />
+        {PANELS.map((p, i) => {
+          const PanelComponent = p.component;
+          return (
+            <div
+              key={p.name}
+              className="display-panel-slot"
+              style={{ display: i === current ? "flex" : "none" }}
+            >
+              <PanelComponent />
+            </div>
+          );
+        })}
       </div>
 
       <div className="display-dots">
