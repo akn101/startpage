@@ -24,6 +24,7 @@ const CameraMonitor    = dynamic(() => import("@/components/CameraMonitor"),    
 const RecentVisitors   = dynamic(() => import("@/components/RecentVisitors"),   { ssr: false });
 const MiniClock        = dynamic(() => import("@/components/MiniClock"),         { ssr: false });
 const Assignments      = dynamic(() => import("@/components/Assignments"),       { ssr: false });
+const HackerNews       = dynamic(() => import("@/components/HackerNews"),        { ssr: false });
 const DisplayShell     = dynamic(() => import("@/components/display/DisplayShell"), { ssr: false });
 
 type DimLevel = 0 | 25 | 50 | 75 | 90;
@@ -225,6 +226,7 @@ export default function Page() {
               <Assignments />
               <ProjectTracker />
               <GitHubPRs />
+              <HackerNews />
               <CalendarWidget />
               <PhotoSlideshow />
               <RecentVisitors />
