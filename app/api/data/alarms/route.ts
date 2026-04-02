@@ -2,7 +2,7 @@ import { db } from "@/lib/supabase-server";
 import { requireAuth } from "@/lib/auth";
 
 export async function GET() {
-  const deny = requireAuth();
+  const deny = await requireAuth();
   if (deny) return deny;
   const { data, error } = await db.from("alarms").select("id, time, label, enabled").order("time", { ascending: true });
   if (error) return Response.json({ error: error.message }, { status: 500 });
@@ -10,7 +10,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const deny = requireAuth();
+  const deny = await requireAuth();
   if (deny) return deny;
   const { time, label } = await req.json();
   const { data, error } = await db.from("alarms").insert({ time, label: label ?? "" }).select("id, time, label, enabled").single();
@@ -19,7 +19,7 @@ export async function POST(req: Request) {
 }
 
 export async function PUT(req: Request) {
-  const deny = requireAuth();
+  const deny = await requireAuth();
   if (deny) return deny;
   const { id, enabled } = await req.json();
   const { error } = await db.from("alarms").update({ enabled }).eq("id", id);
@@ -28,7 +28,7 @@ export async function PUT(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-  const deny = requireAuth();
+  const deny = await requireAuth();
   if (deny) return deny;
   const { id } = await req.json();
   const { error } = await db.from("alarms").delete().eq("id", id);

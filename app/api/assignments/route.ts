@@ -82,7 +82,7 @@ export async function GET() {
 }
 
 export async function PATCH(req: Request) {
-  if (!isAuthenticated()) return Response.json({ error: "Unauthorized" }, { status: 401 });
+  if (!await isAuthenticated()) return Response.json({ error: "Unauthorized" }, { status: 401 });
   if (!NOTION_TOKEN) return Response.json({ error: "No token" }, { status: 500 });
 
   const { id, status } = await req.json();

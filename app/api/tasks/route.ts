@@ -47,7 +47,7 @@ export async function GET() {
     return Response.json({ projects: [], tasks: [] });
   }
 
-  const authed = isAuthenticated();
+  const authed = await isAuthenticated();
 
   const [projRes, taskRes] = await Promise.all([
     notionFetch(`/databases/${PROJECTS_DB}/query`, {
@@ -93,7 +93,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const authed = isAuthenticated();
+  const authed = await isAuthenticated();
   if (!authed) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   const { type, data } = await req.json();
@@ -151,7 +151,7 @@ export async function POST(req: Request) {
 }
 
 export async function PATCH(req: Request) {
-  const authed = isAuthenticated();
+  const authed = await isAuthenticated();
   if (!authed) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id, properties } = await req.json();

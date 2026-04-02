@@ -4,7 +4,7 @@ import { isAuthenticated, requireAuth } from "@/lib/auth";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  if (!isAuthenticated()) return Response.json({ searches: [] });
+  if (!await isAuthenticated()) return Response.json({ searches: [] });
   const { data } = await db
     .from("searches")
     .select("query, created_at")
@@ -14,7 +14,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const deny = requireAuth();
+  const deny = await requireAuth();
   if (deny) return deny;
   const { query } = await req.json();
   if (!query?.trim()) return Response.json({ ok: false });

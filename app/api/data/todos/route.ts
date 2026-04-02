@@ -2,7 +2,7 @@ import { db } from "@/lib/supabase-server";
 import { isAuthenticated, requireAuth } from "@/lib/auth";
 
 export async function GET() {
-  const authed = isAuthenticated();
+  const authed = await isAuthenticated();
   let query = db.from("todos").select("id, text, done, is_public").order("created_at", { ascending: true });
   if (!authed) query = query.eq("is_public", true);
   const { data, error } = await query;
@@ -11,7 +11,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const deny = requireAuth();
+  const deny = await requireAuth();
   if (deny) return deny;
   const { text } = await req.json();
   const { data, error } = await db.from("todos").insert({ text, done: false }).select("id, text, done, is_public").single();
@@ -20,7 +20,7 @@ export async function POST(req: Request) {
 }
 
 export async function PATCH(req: Request) {
-  const deny = requireAuth();
+  const deny = await requireAuth();
   if (deny) return deny;
   const { id, done, is_public } = await req.json();
   const updates: Record<string, unknown> = {};
@@ -32,7 +32,7 @@ export async function PATCH(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-  const deny = requireAuth();
+  const deny = await requireAuth();
   if (deny) return deny;
   const { ids } = await req.json();
   const { error } = await db.from("todos").delete().in("id", ids);

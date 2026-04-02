@@ -112,7 +112,7 @@ async function createNotionTask(title: string, projectName: string) {
 // Body: { analyze: true } → returns suggestions
 // Body: { confirm: true, suggestions: Suggestion[] } → creates tasks, deletes todos
 export async function POST(req: Request) {
-  const deny = requireAuth();
+  const deny = await requireAuth();
   if (deny) return deny;
 
   const body = await req.json();

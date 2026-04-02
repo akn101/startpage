@@ -680,6 +680,34 @@ html, body, main {
   color: rgba(255,100,100,0.6);
 }
 
+.access-divider {
+  font-size: 0.55rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.15);
+  text-align: center;
+  margin: 0.25rem 0;
+}
+
+.access-sso-btn {
+  background: transparent;
+  border: 1px solid rgba(150,120,255,0.25);
+  border-radius: 6px;
+  color: rgba(150,120,255,0.7);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  padding: 0.5rem;
+  cursor: pointer;
+  width: 100%;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.access-sso-btn:hover {
+  border-color: rgba(150,120,255,0.5);
+  color: rgba(150,120,255,1);
+}
+
 /* ─── Time Tracker ───────────────────────────────────────── */
 .tracker-widget {
   padding: 1rem 1.2rem;

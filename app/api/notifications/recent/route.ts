@@ -5,7 +5,7 @@ import { requireAuth } from "@/lib/auth";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
-  const deny = requireAuth();
+  const deny = await requireAuth();
   if (deny) return deny;
 
   const since = req.nextUrl.searchParams.get("since");

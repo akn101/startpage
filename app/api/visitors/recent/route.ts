@@ -2,7 +2,7 @@ import { db } from "@/lib/supabase-server";
 import { requireAuth } from "@/lib/auth";
 
 export async function GET() {
-  const deny = requireAuth();
+  const deny = await requireAuth();
   if (deny) return deny;
 
   const { data, error } = await db.from("visitors")

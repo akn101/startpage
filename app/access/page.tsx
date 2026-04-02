@@ -51,6 +51,14 @@ export default function AccessPage() {
           disabled={loading}
         />
         {error && <div className="access-error">incorrect code</div>}
+        <div className="access-divider">or</div>
+        <button
+          type="button"
+          className="access-sso-btn"
+          onClick={() => { window.location.href = "/api/auth/callback"; }}
+        >
+          Login with akn ID
+        </button>
       </form>
     </div>
   );

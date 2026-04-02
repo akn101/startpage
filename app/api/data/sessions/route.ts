@@ -90,7 +90,7 @@ async function matchProject(label: string): Promise<string | null> {
 }
 
 export async function GET() {
-  const authed = isAuthenticated();
+  const authed = await isAuthenticated();
   let query = db.from("time_sessions")
     .select("id, label, duration_s, project, is_public, started_at")
     .order("created_at", { ascending: false })
@@ -102,7 +102,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const deny = requireAuth();
+  const deny = await requireAuth();
   if (deny) return deny;
   const { label, started_at, ended_at, duration_s } = await req.json();
 

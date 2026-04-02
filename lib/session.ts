@@ -1,0 +1,35 @@
+import { SignJWT, jwtVerify } from 'jose';
+
+export interface SessionData {
+  uid: string;
+  email: string | null;
+  displayName: string | null;
+  role: string;
+  projects: string[];
+}
+
+export const SESSION_COOKIE = 'sp_session';
+const TTL_SECONDS = 60 * 60 * 24 * 365; // 1 year — always-on tablet
+
+function secret() {
+  const s = process.env.SESSION_SECRET;
+  if (!s) throw new Error('SESSION_SECRET not set');
+  return new TextEncoder().encode(s);
+}
+
+export async function signSession(data: SessionData): Promise<string> {
+  return new SignJWT({ ...data })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt()
+    .setExpirationTime(`${TTL_SECONDS}s`)
+    .sign(secret());
+}
+
+export async function verifySession(token: string): Promise<SessionData | null> {
+  try {
+    const { payload } = await jwtVerify(token, secret());
+    return payload as unknown as SessionData;
+  } catch {
+    return null;
+  }
+}

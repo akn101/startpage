@@ -1,5 +1,9 @@
-import { isAuthenticated } from "@/lib/auth";
+import { isAuthenticated, getAuthSession } from "@/lib/auth";
 
 export async function GET() {
-  return Response.json({ authenticated: isAuthenticated() });
+  const [authed, session] = await Promise.all([await isAuthenticated(), getAuthSession()]);
+  return Response.json({
+    authenticated: authed,
+    ...(authed && session ? { uid: session.uid, email: session.email } : {}),
+  });
 }

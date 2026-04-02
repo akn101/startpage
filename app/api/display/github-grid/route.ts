@@ -8,7 +8,7 @@ interface ContribDay { date: string; contributionCount: number }
 interface ContribWeek { contributionDays: ContribDay[] }
 
 export async function GET() {
-  if (!GH_TOKEN || !isAuthenticated()) return Response.json({ weeks: [], totalContributions: 0, streak: 0 });
+  if (!GH_TOKEN || !await isAuthenticated()) return Response.json({ weeks: [], totalContributions: 0, streak: 0 });
 
   const now = new Date();
   const from = new Date(now);
