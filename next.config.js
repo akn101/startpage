@@ -22,9 +22,10 @@ const nextConfig = {
             value: [
               "default-src 'self'",
               "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
-              "style-src 'self' 'unsafe-inline'",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: blob: https:",
-              "connect-src 'self' https://*.supabase.co https://api.notion.com https://api.github.com https://wttr.in https://api.akn.me.uk",
+              "connect-src 'self' https://*.supabase.co https://api.notion.com https://api.github.com https://wttr.in https://api.akn.me.uk https://hacker-news.firebaseio.com",
               "worker-src 'self' blob:",
               "frame-ancestors 'none'",
             ].join("; "),
