@@ -4,21 +4,36 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 
 interface AuthCtx {
   authenticated: boolean;
+  uid: string | null;
+  role: string | null;
+  projects: string[];
+  isAdmin: boolean;
 }
 
-const Ctx = createContext<AuthCtx>({ authenticated: false });
+const defaultCtx: AuthCtx = { authenticated: false, uid: null, role: null, projects: [], isAdmin: false };
+const Ctx = createContext<AuthCtx>(defaultCtx);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [authenticated, setAuthenticated] = useState(false);
+  const [state, setState] = useState<AuthCtx>(defaultCtx);
 
   useEffect(() => {
     fetch("/api/auth/status")
       .then((r) => r.json())
-      .then((d) => setAuthenticated(d.authenticated ?? false))
-      .catch(() => setAuthenticated(false));
+      .then((d) => {
+        const role = d.role ?? null;
+        const projects: string[] = d.projects ?? [];
+        setState({
+          authenticated: d.authenticated ?? false,
+          uid: d.uid ?? null,
+          role,
+          projects,
+          isAdmin: role === "admin" || projects.includes("startpage-admin"),
+        });
+      })
+      .catch(() => setState(defaultCtx));
   }, []);
 
-  return <Ctx.Provider value={{ authenticated }}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={state}>{children}</Ctx.Provider>;
 }
 
 export const useAuth = () => useContext(Ctx);

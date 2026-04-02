@@ -1,4 +1,4 @@
-import { isAuthenticated } from "@/lib/auth";
+import { isAuthenticated, isAdmin } from "@/lib/auth";
 
 const NOTION_TOKEN = process.env.NOTION_TOKEN!;
 const PROJECTS_DB  = process.env.NOTION_DATABASE_ID_PROJECTS!;
@@ -93,8 +93,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const authed = await isAuthenticated();
-  if (!authed) return Response.json({ error: "Unauthorized" }, { status: 401 });
+  if (!await isAdmin()) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   const { type, data } = await req.json();
 
@@ -151,8 +150,7 @@ export async function POST(req: Request) {
 }
 
 export async function PATCH(req: Request) {
-  const authed = await isAuthenticated();
-  if (!authed) return Response.json({ error: "Unauthorized" }, { status: 401 });
+  if (!await isAdmin()) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id, properties } = await req.json();
   const res = await fetch(`https://api.notion.com/v1/pages/${id}`, {

@@ -1,5 +1,5 @@
 import { db } from "@/lib/supabase-server";
-import { isAuthenticated, requireAuth } from "@/lib/auth";
+import { getUid, requireUid } from "@/lib/auth";
 import AnthropicBedrock from "@anthropic-ai/bedrock-sdk";
 
 const bedrock = new AnthropicBedrock({
@@ -90,26 +90,28 @@ async function matchProject(label: string): Promise<string | null> {
 }
 
 export async function GET() {
-  const authed = await isAuthenticated();
+  const uid = await getUid();
   let query = db.from("time_sessions")
     .select("id, label, duration_s, project, is_public, started_at")
     .order("created_at", { ascending: false })
     .limit(200);
-  if (!authed) query = query.eq("is_public", true);
+  if (uid) query = query.eq("user_id", uid);
+  else query = query.eq("is_public", true);
   const { data, error } = await query;
   if (error) return Response.json({ error: error.message }, { status: 500 });
   return Response.json({ sessions: data ?? [] });
 }
 
 export async function POST(req: Request) {
-  const deny = await requireAuth();
-  if (deny) return deny;
+  const result = await requireUid();
+  if (result instanceof Response) return result;
+  const { uid } = result;
   const { label, started_at, ended_at, duration_s } = await req.json();
 
   const project = await matchProject(label);
 
   const { data, error } = await db.from("time_sessions")
-    .insert({ label, started_at, ended_at, duration_s, ...(project ? { project } : {}) })
+    .insert({ label, started_at, ended_at, duration_s, user_id: uid, ...(project ? { project } : {}) })
     .select("id, label, duration_s, project, started_at")
     .single();
   if (error) return Response.json({ error: error.message }, { status: 500 });

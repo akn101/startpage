@@ -16,7 +16,11 @@ export async function GET(req: NextRequest) {
     .limit(20);
 
   if (since) {
-    query = query.gt("created_at", new Date(Number(since)).toISOString());
+    const ts = Number(since);
+    if (!Number.isFinite(ts) || ts < 0 || ts > Date.now() + 60_000) {
+      return NextResponse.json({ error: "Invalid since parameter" }, { status: 400 });
+    }
+    query = query.gt("created_at", new Date(ts).toISOString());
   }
 
   const { data, error } = await query;

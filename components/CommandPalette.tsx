@@ -31,6 +31,7 @@ export default function CommandPalette({ onAddTodo, cameraEnabled, onCameraToggl
   const [input, setInput] = useState("");
   const tracker = useTimeTracker();
   const { authenticated } = useAuth();
+  const [loggingOut, setLoggingOut] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const suggestionsRef = useRef<string[]>([]);
 
@@ -304,6 +305,22 @@ export default function CommandPalette({ onAddTodo, cameraEnabled, onCameraToggl
 
           {!isTodo && !isRecord && !isAlarm && !isDim && !isCamera && !isDisplay && (
             <Command.Group heading="Actions">
+              {!authenticated && (
+                <Command.Item value="login" onSelect={() => { window.location.href = "/api/auth/callback"; close(); }}>
+                  <span className="cmdk-icon">→</span>
+                  Login with akn ID
+                </Command.Item>
+              )}
+              {authenticated && (
+                <Command.Item value="logout" onSelect={async () => {
+                  setLoggingOut(true);
+                  await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
+                  window.location.href = "/access";
+                }}>
+                  <span className="cmdk-icon">←</span>
+                  {loggingOut ? "Logging out…" : "Log out"}
+                </Command.Item>
+              )}
               <Command.Item value="add todo" onSelect={() => setInput("/todo ")}>
                 <span className="cmdk-icon">＋</span>
                 Add todo

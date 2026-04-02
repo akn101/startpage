@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { signSession, SESSION_COOKIE } from '@/lib/session';
+import { signSession, SESSION_COOKIE, TTL_SECONDS } from '@/lib/session';
 
 const API = 'https://api.akn.me.uk';
 
@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
       httpOnly: true,
       secure: true,
       sameSite: 'strict',
-      maxAge: 60 * 60 * 24 * 365,
+      maxAge: TTL_SECONDS,
       path: '/',
     });
 

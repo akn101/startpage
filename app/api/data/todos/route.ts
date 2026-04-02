@@ -1,41 +1,47 @@
 import { db } from "@/lib/supabase-server";
-import { isAuthenticated, requireAuth } from "@/lib/auth";
+import { getUid, requireUid } from "@/lib/auth";
 
 export async function GET() {
-  const authed = await isAuthenticated();
+  const uid = await getUid();
   let query = db.from("todos").select("id, text, done, is_public").order("created_at", { ascending: true });
-  if (!authed) query = query.eq("is_public", true);
+  if (uid) query = query.eq("user_id", uid);
+  else query = query.eq("is_public", true);
   const { data, error } = await query;
   if (error) return Response.json({ error: error.message }, { status: 500 });
   return Response.json({ todos: data ?? [] });
 }
 
 export async function POST(req: Request) {
-  const deny = await requireAuth();
-  if (deny) return deny;
+  const result = await requireUid();
+  if (result instanceof Response) return result;
+  const { uid } = result;
   const { text } = await req.json();
-  const { data, error } = await db.from("todos").insert({ text, done: false }).select("id, text, done, is_public").single();
+  const { data, error } = await db.from("todos")
+    .insert({ text, done: false, user_id: uid })
+    .select("id, text, done, is_public").single();
   if (error) return Response.json({ error: error.message }, { status: 500 });
   return Response.json({ todo: data });
 }
 
 export async function PATCH(req: Request) {
-  const deny = await requireAuth();
-  if (deny) return deny;
+  const result = await requireUid();
+  if (result instanceof Response) return result;
+  const { uid } = result;
   const { id, done, is_public } = await req.json();
   const updates: Record<string, unknown> = {};
   if (done !== undefined) updates.done = done;
   if (is_public !== undefined) updates.is_public = is_public;
-  const { error } = await db.from("todos").update(updates).eq("id", id);
+  const { error } = await db.from("todos").update(updates).eq("id", id).eq("user_id", uid);
   if (error) return Response.json({ error: error.message }, { status: 500 });
   return Response.json({ ok: true });
 }
 
 export async function DELETE(req: Request) {
-  const deny = await requireAuth();
-  if (deny) return deny;
+  const result = await requireUid();
+  if (result instanceof Response) return result;
+  const { uid } = result;
   const { ids } = await req.json();
-  const { error } = await db.from("todos").delete().in("id", ids);
+  const { error } = await db.from("todos").delete().in("id", ids).eq("user_id", uid);
   if (error) return Response.json({ error: error.message }, { status: 500 });
   return Response.json({ ok: true });
 }

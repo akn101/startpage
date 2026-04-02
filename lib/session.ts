@@ -9,7 +9,7 @@ export interface SessionData {
 }
 
 export const SESSION_COOKIE = 'sp_session';
-const TTL_SECONDS = 60 * 60 * 24 * 365; // 1 year — always-on tablet
+export const TTL_SECONDS = 60 * 60 * 24 * 30; // 30 days
 
 function secret() {
   const s = process.env.SESSION_SECRET;
