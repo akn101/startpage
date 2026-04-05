@@ -67,6 +67,22 @@ export default function Page() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showMini, setShowMini] = useState(false);
 
+  // Background brightness — persisted to localStorage
+  const [bgBrightness, setBgBrightness] = useState(100);
+  useEffect(() => {
+    const saved = localStorage.getItem("sp_bg_brightness");
+    if (saved) setBgBrightness(Number(saved));
+  }, []);
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const val = (e as CustomEvent<number>).detail;
+      setBgBrightness(val);
+      localStorage.setItem("sp_bg_brightness", String(val));
+    };
+    window.addEventListener("setBgBrightness", handler);
+    return () => window.removeEventListener("setBgBrightness", handler);
+  }, []);
+
   // Camera enabled state — persisted to localStorage
   const [cameraEnabled, setCameraEnabled] = useState(true);
   useEffect(() => {
@@ -209,7 +225,7 @@ export default function Page() {
     <TimeTrackerProvider>
       <main>
         {/* ── Always-on animated background (fixed) ── */}
-        <div className={screensaverClass}>
+        <div className={screensaverClass} style={bgBrightness !== 100 ? { filter: `brightness(${bgBrightness}%)` } : undefined}>
           <Screensaver />
         </div>
 

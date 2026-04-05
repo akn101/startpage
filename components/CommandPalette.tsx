@@ -111,8 +111,16 @@ export default function CommandPalette({ onAddTodo, cameraEnabled, onCameraToggl
     { label: "90%",  value: 90 },
   ];
 
+  const isBright = input.toLowerCase().startsWith("/bright");
+  const brightLevels = [
+    { label: "Default (100%)", value: 100 },
+    { label: "Brighter (140%)", value: 140 },
+    { label: "Max (200%)", value: 200 },
+  ];
+
   const isCamera  = input.toLowerCase().startsWith("/camera");
   const isDisplay = input.toLowerCase().startsWith("/display");
+
 
   const plainText   = input.trim();
   const isCommand   = plainText.startsWith("/");
@@ -269,6 +277,20 @@ export default function CommandPalette({ onAddTodo, cameraEnabled, onCameraToggl
             </Command.Group>
           )}
 
+          {isBright && (
+            <Command.Group heading="Background Brightness">
+              {brightLevels.map(({ label, value }) => (
+                <Command.Item key={value} value={`bright-${value}`} onSelect={() => {
+                  window.dispatchEvent(new CustomEvent("setBgBrightness", { detail: value }));
+                  close();
+                }}>
+                  <span className="cmdk-icon">☀</span>
+                  {label}
+                </Command.Item>
+              ))}
+            </Command.Group>
+          )}
+
           {isCamera && (
             <Command.Group heading="Camera">
               <Command.Item value="camera-toggle" onSelect={() => { onCameraToggle(); close(); }}>
@@ -287,7 +309,7 @@ export default function CommandPalette({ onAddTodo, cameraEnabled, onCameraToggl
             </Command.Group>
           )}
 
-          {!isTodo && !isRecord && !isAlarm && !isDim && !isCamera && !isDisplay && (
+          {!isTodo && !isRecord && !isAlarm && !isDim && !isBright && !isCamera && !isDisplay && (
             <Command.Group heading="Go to">
               {quickLinks.map((link) => (
                 <Command.Item
@@ -303,7 +325,7 @@ export default function CommandPalette({ onAddTodo, cameraEnabled, onCameraToggl
             </Command.Group>
           )}
 
-          {!isTodo && !isRecord && !isAlarm && !isDim && !isCamera && !isDisplay && (
+          {!isTodo && !isRecord && !isAlarm && !isDim && !isBright && !isCamera && !isDisplay && (
             <Command.Group heading="Actions">
               {!authenticated && (
                 <Command.Item value="login" onSelect={() => { window.location.href = "/api/auth/callback"; close(); }}>
@@ -340,6 +362,11 @@ export default function CommandPalette({ onAddTodo, cameraEnabled, onCameraToggl
                 <span className="cmdk-icon">🌙</span>
                 Dim screen
                 <span className="cmdk-shortcut">/dim</span>
+              </Command.Item>
+              <Command.Item value="background brightness" onSelect={() => setInput("/bright ")}>
+                <span className="cmdk-icon">☀</span>
+                Background brightness
+                <span className="cmdk-shortcut">/bright</span>
               </Command.Item>
               <Command.Item value="toggle camera" onSelect={() => { onCameraToggle(); close(); }}>
                 <span className="cmdk-icon">📷</span>
