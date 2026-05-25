@@ -33,16 +33,10 @@ function weatherLabel(code: number): string {
 }
 
 async function loadWeather(): Promise<WeatherData> {
-  return new Promise((resolve, reject) => {
-    const byCoords = (lat: number, lon: number, city?: string) =>
-      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode,windspeed_10m&temperature_unit=celsius`)
-        .then((r) => r.json())
-        .then((d) => resolve({ temp: Math.round(d.current.temperature_2m), windspeed: Math.round(d.current.windspeed_10m), code: d.current.weathercode, city }))
-        .catch(reject);
-    const byIP = () => fetch("https://ipapi.co/json/").then((r) => r.json()).then((geo) => byCoords(geo.latitude, geo.longitude, geo.city)).catch(reject);
-    if (!navigator.geolocation) { byIP(); return; }
-    navigator.geolocation.getCurrentPosition(({ coords }) => byCoords(coords.latitude, coords.longitude), () => byIP());
-  });
+  const geo = await fetch("https://ipapi.co/json/").then((r) => r.json());
+  const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${geo.latitude}&longitude=${geo.longitude}&current=temperature_2m,weathercode,windspeed_10m&temperature_unit=celsius`);
+  const d = await res.json();
+  return { temp: Math.round(d.current.temperature_2m), windspeed: Math.round(d.current.windspeed_10m), code: d.current.weathercode, city: geo.city };
 }
 
 function fmtTime(iso: string) {
