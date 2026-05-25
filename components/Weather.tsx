@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { getGeo } from "@/lib/geo";
 
 interface WeatherData {
   temp: number;
@@ -23,29 +24,25 @@ function interpretWeather(code: number): { emoji: string; label: string } {
   return { emoji: "🌡️", label: "Unknown" };
 }
 
-async function fetchWeather(lat: number, lon: number, city?: string): Promise<WeatherData> {
+async function fetchWeather(): Promise<WeatherData> {
+  const geo = await getGeo();
   const res = await fetch(
-    `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode,windspeed_10m&temperature_unit=celsius`
+    `https://api.open-meteo.com/v1/forecast?latitude=${geo.latitude}&longitude=${geo.longitude}&current=temperature_2m,weathercode,windspeed_10m&temperature_unit=celsius`
   );
   const data = await res.json();
   return {
     temp: Math.round(data.current.temperature_2m),
     windspeed: Math.round(data.current.windspeed_10m),
     code: data.current.weathercode,
-    city,
+    city: geo.city,
   };
-}
-
-async function fetchByIP(): Promise<WeatherData> {
-  const geo = await fetch("https://ipapi.co/json/").then((r) => r.json());
-  return fetchWeather(geo.latitude, geo.longitude, geo.city);
 }
 
 export default function Weather() {
   const [weather, setWeather] = useState<WeatherData | null>(null);
 
   useEffect(() => {
-    fetchByIP().then(setWeather).catch(() => {});
+    fetchWeather().then(setWeather).catch(() => {});
   }, []);
 
   if (!weather) return (

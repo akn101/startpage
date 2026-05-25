@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { getGeo } from "@/lib/geo";
 
 interface WeatherData { temp: number; windspeed: number; code: number; city?: string }
 interface CalEvent    { uid: string; summary: string; start: string; end: string; allDay: boolean }
@@ -34,7 +35,7 @@ function weatherLabel(code: number): string {
 }
 
 async function loadWeather(): Promise<WeatherData> {
-  const geo = await fetch("https://ipapi.co/json/").then((r) => r.json());
+  const geo = await getGeo();
   const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${geo.latitude}&longitude=${geo.longitude}&current=temperature_2m,weathercode,windspeed_10m&temperature_unit=celsius`);
   const d = await res.json();
   return { temp: Math.round(d.current.temperature_2m), windspeed: Math.round(d.current.windspeed_10m), code: d.current.weathercode, city: geo.city };
