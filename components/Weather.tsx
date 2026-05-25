@@ -44,7 +44,9 @@ async function fetchByIP(): Promise<WeatherData> {
 export default function Weather() {
   const [weather, setWeather] = useState<WeatherData | null>(null);
 
-  useEffect(() => { fetchByIP().then(setWeather).catch(() => {}); }, []);
+  useEffect(() => {
+    fetchByIP().then(setWeather).catch(() => {});
+  }, []);
 
   if (!weather) return (
     <div className="weather-widget glass-sm">
