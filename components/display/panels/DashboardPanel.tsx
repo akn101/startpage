@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { modules } from "@/lib/config";
 
 interface Todo     { id: string; text: string; done: boolean }
 interface Assignment { title: string; status: string; due: string; subject?: string }
@@ -48,7 +49,9 @@ export default function DashboardPanel() {
   const load = async () => {
     const [t, a, s, g] = await Promise.allSettled([
       fetch("/api/data/todos").then((r) => r.json()),
-      fetch("/api/assignments").then((r) => r.json()),
+      modules.assignments
+        ? fetch("/api/assignments").then((r) => r.json())
+        : Promise.resolve({ assignments: [] }),
       fetch("/api/data/sessions").then((r) => r.json()),
       fetch("/api/integrations/github").then((r) => r.json()),
     ]);

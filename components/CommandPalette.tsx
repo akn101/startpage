@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { Command } from "cmdk";
-import { quickLinks } from "@/lib/config";
+import { quickLinks, modules } from "@/lib/config";
 import { useTimeTracker, fmtDuration } from "@/context/TimeTrackerContext";
 import { useAuth } from "@/context/AuthContext";
 
@@ -118,7 +118,7 @@ export default function CommandPalette({ onAddTodo, cameraEnabled, onCameraToggl
     { label: "Max (200%)", value: 200 },
   ];
 
-  const isCamera  = input.toLowerCase().startsWith("/camera");
+  const isCamera  = modules.cameraMonitor && input.toLowerCase().startsWith("/camera");
   const isDisplay = input.toLowerCase().startsWith("/display");
   const isLogin   = input.toLowerCase().startsWith("/login");
   const isLogout  = input.toLowerCase().startsWith("/logout");
@@ -455,11 +455,13 @@ export default function CommandPalette({ onAddTodo, cameraEnabled, onCameraToggl
                 Background brightness
                 <span className="cmdk-shortcut">/bright</span>
               </Command.Item>
-              <Command.Item value="toggle camera" onSelect={() => { onCameraToggle(); close(); }}>
-                <span className="cmdk-icon">📷</span>
-                {cameraEnabled ? "Disable camera" : "Enable camera"}
-                <span className="cmdk-shortcut">/camera</span>
-              </Command.Item>
+              {modules.cameraMonitor && (
+                <Command.Item value="toggle camera" onSelect={() => { onCameraToggle(); close(); }}>
+                  <span className="cmdk-icon">📷</span>
+                  {cameraEnabled ? "Disable camera" : "Enable camera"}
+                  <span className="cmdk-shortcut">/camera</span>
+                </Command.Item>
+              )}
               <Command.Item value="clear done" onSelect={() => {
                 window.dispatchEvent(new CustomEvent("clearDoneTodos")); close();
               }}>

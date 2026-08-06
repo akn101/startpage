@@ -39,23 +39,47 @@ function dayLabel(start: string): string {
   return d.toLocaleDateString("en-GB", { weekday: "short" });
 }
 
+const REFRESH_MS = 15 * 60 * 1000;
+
+type Status = "ok" | "error" | "unconfigured";
+
 export default function CalendarWidget() {
   const [events, setEvents] = useState<CalEvent[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const [status, setStatus] = useState<Status>("ok");
 
+  // Refetch on a timer and on the global refreshData event — this widget lives
+  // on a screen that stays open for weeks, so a one-shot fetch goes stale.
   useEffect(() => {
-    fetch("/api/integrations/calendar")
-      .then((r) => r.json())
-      .then(({ events: ev }) => {
-        setEvents(ev ?? []);
-        setLoading(false);
-      })
-      .catch(() => {
-        setError(true);
-        setLoading(false);
-      });
+    let cancelled = false;
+
+    const load = () => {
+      fetch("/api/integrations/calendar", { cache: "no-store" })
+        .then((r) => r.json())
+        .then(({ events: ev, status: s }) => {
+          if (cancelled) return;
+          setEvents(ev ?? []);
+          setStatus((s as Status) ?? "ok");
+          setLoading(false);
+        })
+        .catch(() => {
+          if (cancelled) return;
+          setStatus("error");
+          setLoading(false);
+        });
+    };
+
+    load();
+    const id = setInterval(load, REFRESH_MS);
+    window.addEventListener("refreshData", load);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+      window.removeEventListener("refreshData", load);
+    };
   }, []);
+
+  const error = status === "error";
 
   // Group by day label
   const grouped: { day: string; items: CalEvent[] }[] = [];
@@ -78,7 +102,9 @@ export default function CalendarWidget() {
 
       {!loading && !error && events.length === 0 && (
         <div className="feed-empty">
-          No upcoming events — set CALDAV_ICS_URL in Vercel
+          {status === "unconfigured"
+            ? "Set CALDAV_URL, CALDAV_USERNAME and CALDAV_PASSWORD in Vercel"
+            : "Nothing in the next 7 days"}
         </div>
       )}
 

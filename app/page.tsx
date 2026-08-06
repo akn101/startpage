@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { useNotifications } from "@/hooks/useNotifications";
 import NotificationToast from "@/components/NotificationToast";
 import { TimeTrackerProvider } from "@/context/TimeTrackerContext";
+import { modules } from "@/lib/config";
 
 const Screensaver    = dynamic(() => import("@/components/Screensaver"),    { ssr: false });
 const Clock          = dynamic(() => import("@/components/Clock"),          { ssr: false });
@@ -266,14 +267,14 @@ export default function Page() {
           {/* Section 3: Feed tiles */}
           <section className="snap-section section-feed">
             <div className="feed-section">
-              <ExamCountdown />
-              <Assignments />
+              {modules.examCountdown && <ExamCountdown />}
+              {modules.assignments && <Assignments />}
               <ProjectTracker />
               <GitHubPRs />
               <HackerNews />
               <CalendarWidget />
               <PhotoSlideshow />
-              <RecentVisitors />
+              {modules.cameraMonitor && <RecentVisitors />}
               <ThoughtsFeed />
             </div>
           </section>
@@ -286,7 +287,7 @@ export default function Page() {
         </div>
 
         {/* ── Background camera monitor (auth-gated, invisible) ── */}
-        <CameraMonitor enabled={cameraEnabled} />
+        {modules.cameraMonitor && <CameraMonitor enabled={cameraEnabled} />}
 
         {/* ── cmd+k palette ── */}
         <CommandPalette
@@ -309,7 +310,11 @@ export default function Page() {
         <NotificationToast toasts={toasts} onDismiss={dismiss} />
 
         {/* ── Keyboard hint ── */}
-        <div className="kbd-hint">⌘K · /record · /alarm · /dim · /camera · /display</div>
+        <div className="kbd-hint">
+          {["⌘K", "/record", "/alarm", "/dim", modules.cameraMonitor ? "/camera" : null, "/display"]
+            .filter(Boolean)
+            .join(" · ")}
+        </div>
 
         {/* ── Idle display mode overlay ── */}
         {showDisplay && (

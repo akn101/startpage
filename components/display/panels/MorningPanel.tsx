@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { getGeo } from "@/lib/geo";
+import { modules } from "@/lib/config";
 
 interface WeatherData { temp: number; windspeed: number; code: number; city?: string }
 interface CalEvent    { uid: string; summary: string; start: string; end: string; allDay: boolean }
@@ -73,7 +74,9 @@ export default function MorningPanel() {
       fetch("/api/integrations/calendar").then((r) => r.json()),
       fetch("/api/data/alarms").then((r) => r.json()),
       fetch("/api/data/todos").then((r) => r.json()),
-      fetch("/api/assignments").then((r) => r.json()),
+      modules.assignments
+        ? fetch("/api/assignments").then((r) => r.json())
+        : Promise.resolve(null),
     ]);
     if (w.status === "fulfilled") setWeather(w.value);
     if (cal.status === "fulfilled") {
@@ -91,7 +94,7 @@ export default function MorningPanel() {
       const list: Todo[] = Array.isArray(raw) ? raw : (raw.todos ?? []);
       setTodoCt(list.filter((t) => !t.done).length);
     }
-    if (assigns.status === "fulfilled") {
+    if (assigns.status === "fulfilled" && assigns.value) {
       const raw = assigns.value;
       const list: Assignment[] = Array.isArray(raw) ? raw : (raw.assignments ?? []);
       const pending = list.filter((a) => !["Complete", "Marked", "Archived"].includes(a.status));

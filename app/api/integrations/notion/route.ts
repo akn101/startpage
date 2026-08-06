@@ -1,5 +1,11 @@
 import { NextResponse } from "next/server";
 
+// Same trap as the calendar route: with no dynamic API in the handler, Next 14
+// prerenders it at build time. The `revalidate` below doesn't rescue it either
+// — that only applies to cached GET fetches, and Notion's query is a POST.
+export const dynamic  = "force-dynamic";
+export const revalidate = 0;
+
 export async function GET() {
   const token = process.env.NOTION_TOKEN;
   const dbId = process.env.NOTION_DATABASE_ID;

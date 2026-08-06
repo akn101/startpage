@@ -6,3 +6,6 @@ node_modules/
 
 # Private notes
 .notes/
+
+# macOS
+.DS_Store

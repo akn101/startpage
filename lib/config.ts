@@ -16,3 +16,19 @@ export const quickLinks: QuickLink[] = [
 ];
 
 export const idleTimeoutMs = 3 * 60 * 1000; // 3 minutes
+
+// ── Module toggles ─────────────────────────────────────────────────────────
+// Flip to true to bring a module back. Code is kept intact either way, so
+// re-enabling is a one-line change with no other edits needed.
+//
+// The school-era modules were switched off in Aug 2026 (sixth form finished).
+export const modules = {
+  /** Countdown to A-level papers. EXAMS[] in ExamCountdown.tsx is a fixed
+   *  2026 list — refill it before turning this back on. */
+  examCountdown: false,
+  /** Homework tracker backed by /api/assignments (Notion). */
+  assignments: false,
+  /** Webcam capture + recent-visitor strip. Also gates the camera commands
+   *  in the ⌘K palette. */
+  cameraMonitor: false,
+} as const;

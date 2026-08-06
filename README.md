@@ -14,7 +14,10 @@ Live at [startpage.akn.me.uk](https://startpage.akn.me.uk).
 
 1. **Landing** — big clock and search bar. That's it. Clean.
 2. **Dashboard** — weather, todos, a parallel time tracker, alarms, quick links.
-3. **Feed** — project tracker (pulled from Notion), open GitHub PRs, calendar (CalDAV), a photo slideshow, and recent visitors from the door camera.
+3. **Feed** — project tracker (pulled from Notion), open GitHub PRs, calendar (CalDAV), a photo slideshow, and a thoughts feed.
+
+### Module toggles
+`modules` in [`lib/config.ts`](lib/config.ts) switches whole modules on and off without deleting them. The exam countdown, assignments tracker and camera/visitors modules are currently **off** — they were sixth-form-era features. Flipping a flag back to `true` restores the widget, its display-panel sections and its palette commands.
 
 ### Time tracking
 You can run multiple timers in parallel — useful when context-switching between tasks. When you stop a timer, it keyword-matches the label against your Notion projects and automatically tags the session to the right project. The project tracker then sorts by *least time logged*, so whatever you've been neglecting floats to the top.
@@ -22,7 +25,7 @@ You can run multiple timers in parallel — useful when context-switching betwee
 ### Notion integration
 Projects and tasks sync from Notion. Projects have categories (Tech, Music, Faith, Personal), colour codes, and keyword lists for the timer matching. You can add tasks inline from the startpage. Everything auto-refreshes every 30 minutes.
 
-### Camera & face recognition
+### Camera & face recognition *(currently disabled — see Module toggles)*
 When you're authenticated, the site silently uses your webcam to detect motion and faces in the background. It captures on motion, runs face detection, computes a 128-dimension face descriptor, and matches against stored descriptors — so it learns who you are over time. Images go to private Supabase Storage. The feed shows recent visitors with who/when, deduped by person in the display.
 
 ### Alarms
